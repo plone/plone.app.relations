@@ -2,11 +2,11 @@
   <head>
   </head>
   <body>
-    <div tal:condition="view/installed">the intids is installed</div>
+    <div tal:condition="view/installed">the relations utility is installed</div>
     <div>
       <form method=POST tal:condition="not:view/installed">
 	<input type="submit" 
-	       value="Install intid utility" 
+	       value="Install relations utility" 
 	       name="install"
 	       style="border: 2px solid #F99; background-color: red"/>
       </form>

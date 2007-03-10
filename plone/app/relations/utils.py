@@ -22,7 +22,7 @@ class RelationsInstall(FiveIntIdsInstall):
         try:
             util = getUtility(interfaces.IComplexRelationshipContainer,
                                 name='relations')
-            if util:
+            if util is not None:
                 installed = True
         except ComponentLookupError, e:
             pass
