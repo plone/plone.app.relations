@@ -1,0 +1,32 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:five="http://namespaces.zope.org/five">
+
+  <include package="plone.relations" />
+  <include package="zope.app.annotation" />
+  <five:registerPackage package="." initialize=".initialize" />
+  
+  <adapter factory=".source.RelationshipSource" />
+  <adapter factory=".target.RelationshipTarget" />
+  <adapter factory=".target.SymmetricRelation" />
+  <adapter factory=".annotations.StateAnnotationsAdapter" />
+  <adapter factory=".annotations.ContextAnnotationsAdapter" />
+
+  <browser:page
+      for="Products.CMFCore.interfaces.ISiteRoot"
+      class=".utils.RelationsInstall"
+      permission="five.ManageSite"
+      template="install.pt"
+      name="install-relations.html"
+      />
+  
+  <browser:page
+      for="OFS.interfaces.IFolder"
+      class=".utils.RelationsInstall"
+      permission="five.ManageSite"
+      template="install.pt"
+      name="install-relations.html"
+      />
+
+</configure>

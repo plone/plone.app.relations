@@ -1,0 +1,15 @@
+Metadata-Version: 1.0
+Name: plone.app.relations
+Version: 0.1dev
+Summary: A set of components to provide a content centric API for the engine from plone.relations, as well as a few different core relationship types and policies.
+Home-page: http://svn.plone.org/svn/plone/plone.app.relations
+Author: Alec Mitchell
+Author-email: apm13@columbia.edu
+License: GPL
+Description: UNKNOWN
+Keywords: relationships references plone
+Platform: UNKNOWN
+Classifier: Framework :: Zope2
+Classifier: Framework :: Zope3
+Classifier: Programming Language :: Python
+Classifier: Topic :: Software Development :: Libraries :: Python Modules

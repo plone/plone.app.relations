@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<componentregistry>
+ <adapters/>
+ <utilities>
+   <utility
+     interface="zope.app.intid.interfaces.IIntIds"
+     factory="five.intid.intid.OFSIntIds"/>
+   <utility
+     interface="plone.relations.interfaces.IComplexRelationshipContainer"
+     factory="plone.relations.container.Z2RelationshipContainer"/>
+ </utilities>
+</componentregistry>
