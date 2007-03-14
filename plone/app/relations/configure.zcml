@@ -5,13 +5,17 @@
 
   <include package="plone.relations" />
   <include package="zope.app.annotation" />
-  <five:registerPackage package="." initialize=".initialize" />
+
+  <five:localsite
+      xmlns:five="http://namespaces.zope.org/five"
+      class="Products.CMFPlone.Portal.PloneSite" />
   
   <adapter factory=".source.RelationshipSource" />
   <adapter factory=".target.RelationshipTarget" />
   <adapter factory=".target.SymmetricRelation" />
   <adapter factory=".annotations.StateAnnotationsAdapter" />
   <adapter factory=".annotations.ContextAnnotationsAdapter" />
+  <adapter factory=".workflow.DCWorkflowAdapter" />
 
   <browser:page
       for="Products.CMFCore.interfaces.ISiteRoot"

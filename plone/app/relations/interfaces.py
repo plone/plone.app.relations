@@ -1,6 +1,6 @@
-from zope.interface import Interface
+from zope.interface import Interface, Attribute
 from zope.app.annotation.interfaces import IAnnotatable
-from plone.relations.interfaces import _marker
+from plone.relations.interfaces import _marker, IStatefulRelationship
 
 class TooManyResultsError(Exception):
     """Indicates that a query which was expected to generate a single result
@@ -187,3 +187,29 @@ class IAnnotationsState(IAnnotatable):
 class IAnnotationsContext(IAnnotatable):
     """Implies that the relationship context should be stored in an
     annotation"""
+
+class IDCWorkflowableRelationship(IAnnotatable):
+    """A marker that indicates that state information on the object
+    will be managed using DCWorkflow"""
+
+class IDCWorkflowRelationship(IStatefulRelationship):
+    """An interface describing a stateful relationship whose state is
+    manipulated using a DCWorkflow (from CMF)"""
+
+    workflow_id = Attribute('The name of a DC workflow to be used for this '
+                               'object')
+    state_var = Attribute('The name of the wf variable in which the workflow '
+                          'state is stored.')
+
+    def doAction(action, comment='', **kw):
+        """Requests a workflow action on the object"""
+
+    def isActionAllowedI(action):
+        """Returns True if the given action is currently allowed"""
+
+    def getInfo(name, default=_marker):
+        """Returns the named workflow variable after checking if the current
+        user is allowed to access it"""
+
+    def listActions():
+        """List available user triggered transitions"""
