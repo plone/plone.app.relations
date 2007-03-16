@@ -69,7 +69,7 @@ class DCWorkflowAdapter(object):
         'hide'
         >>> transitions[1]['id']
         'submit'
-        >>> stateful.doAction('submit')
+        >>> stateful.doAction('submit', 'A comment for my submission')
         >>> stateful.state
         'pending'
 
@@ -81,6 +81,62 @@ class DCWorkflowAdapter(object):
         >>> list(source.getRelationships(state='pending'))
         [<Relationship u'relation 1' from (<Demo ob1>,) to (<Demo ob2>,)>]
 
+    We should also be able to query our relationship for workflow variables
+    besides state::
+
+        >>> stateful.getInfo('review_history')
+        [{'action': None, 'review_state': 'visible', 'actor': 'test_user_1_', 'comments': '', 'time': DateTime(...)}, {'action': 'submit', 'review_state': 'pending', 'actor': 'test_user_1_', 'comments': 'A comment for my submission', 'time': DateTime(...)}]
+
+    We can also check if a particular action is allowed at the moment:
+
+        >>> stateful.isActionAllowed('retract')
+        True
+        >>> stateful.isActionAllowed('publish')
+        False
+
+    If we change the workflow used, we get shifted to the default
+    state of that workflow, and the relationship is reindexed::
+
+        >>> stateful.workflow_id = 'folder_workflow'
+        >>> stateful.state
+        'visible'
+        >>> list(source.getRelationships(state='visible'))
+        [<Relationship u'relation 1' from (<Demo ob1>,) to (<Demo ob2>,)>]
+        >>> stateful.workflow_id = 'plone_workflow'
+        >>> stateful.state
+        'visible'
+        >>> list(source.getRelationships(state='visible'))
+        [<Relationship u'relation 1' from (<Demo ob1>,) to (<Demo ob2>,)>]
+
+    We can also set the name of the state variable for the workflow, which
+    is helpful when using custom workflows that don't use the standard
+    ``review_state``.  Here we set it to ``actor`` to demonstrate::
+
+        >>> stateful.state_var = 'actor'
+        >>> stateful.state
+        'test_user_1_'
+        >>> list(source.getRelationships(state='test_user_1_'))
+        [<Relationship u'relation 1' from (<Demo ob1>,) to (<Demo ob2>,)>]
+
+    We should also test the behavior for some pathological cases, which
+    we expect to raise WorkflowException, though ``state`` should always
+    return something sane::
+
+        >>> stateful.doAction('bogus_action')
+        Traceback (most recent call last):
+        ...
+        WorkflowException: No workflow provides the "bogus_action" action.
+        >>> stateful.workflow_id = None
+        >>> stateful.getInfo('review_state')
+        Traceback (most recent call last):
+        ...
+        WorkflowException: Workflow definition not yet set.
+        >>> stateful.workflow_id = 'bogus_workflow'
+        Traceback (most recent call last):
+        ...
+        WorkflowException: Reqested workflow definition not found.
+        >>> stateful.state is None
+        True
 
     """
 
@@ -101,7 +157,9 @@ class DCWorkflowAdapter(object):
             return self.annotations.get('wf_state_var', 'review_state')
         def set(self, value):
             self.annotations['wf_state_var'] = value
-            # XXX: Should we reindex here?
+            # reindex for new state
+            if IBidirectionalRelationshipIndex.providedBy(self.rel.__parent__):
+                self.rel.__parent__.reindex(self.rel)
         return property(get, set)
 
     @apply
@@ -110,9 +168,12 @@ class DCWorkflowAdapter(object):
             return self.annotations.get('dcworkflow_id', None)
         def set(self, value):
             self.annotations['dcworkflow_id'] = value
-            wf = self._get_workflow()
-            # reset workflow state to intial state of new workflow
-            wf.notifyCreated(self.rel)
+            if value is not None:
+                wf = self._get_workflow()
+                # reset workflow state to intial state of new workflow
+                # XXX: Should we try to use an existing state when we switch back
+                # to a workflow we had before?
+                wf.notifyCreated(self.rel)
             # reindex for new state
             if IBidirectionalRelationshipIndex.providedBy(self.rel.__parent__):
                 self.rel.__parent__.reindex(self.rel)
@@ -152,7 +213,8 @@ class DCWorkflowAdapter(object):
         return res
 
     def isActionAllowed(self, action):
-        return wf.isWorkflowMethodSupported(self.rel, action)
+        wf = self._get_workflow()
+        return bool(wf.isActionSupported(self.rel, action))
 
     def getInfo(self, name, default=_marker, *args, **kw):
         wf = self._get_workflow()
