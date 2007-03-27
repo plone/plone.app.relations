@@ -27,9 +27,9 @@ Getting Started
 Our test setup has already installed the utility into a Zope instance
 and some put in some ``Demo`` objects named ob0-ob29.  Let's adapt one
 of these objects to IReferenceSource and use that interface to add a
-simple reference to another object.  We'll also verify that theadpated
-object conforms to our interface, and that the generated relationship
-conforms to the IRelationship interface::
+simple reference to another object.  We'll also verify that the
+adpated object conforms to our interface, and that the generated
+relationship conforms to the IRelationship interface::
 
     >>> from plone.app.relations import interfaces
     >>> from plone.relations import interfaces as pr_interfaces
