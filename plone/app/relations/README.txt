@@ -575,7 +575,7 @@ Now we check the current relationships and ensure they are removed
 when the object is deleted::
 
     >>> list(interfaces.ISymmetricRelation(ob2).getRelationships())
-    [<Relationship u'relation 2' from (<Demo ob2>, <Demo ob5>) to (<Demo ob3>,)>, <Relationship u'relation 1' from (<Demo ob2>,) to (<Demo ob5>,)>, <Relationship None from (<Demo ob2>,) to (<Demo ob3>, <Demo ob4>)>, <Relationship u'relation 1' from (<Demo ob1>,) to (<Demo ob2>, <Demo ob3>)>]
+    [<Relationship u'relation 2' from (<Demo ob2>, <Demo ob1>) to (<Demo ob3>,)>, <Relationship u'relation 1' from (<Demo ob2>,) to (<Demo ob5>,)>, <Relationship None from (<Demo ob2>,) to (<Demo ob3>, <Demo ob1>)>, <Relationship u'relation 1' from (<Demo ob1>,) to (<Demo ob2>, <Demo ob3>)>, <Relationship None from (<Demo ob1>,) to (<Demo ob2>,)>]
     >>> list(interfaces.IRelationshipSource(ob1).getTargets())
     [<Demo ob2>, <Demo ob3>, <Demo ob5>, <Demo ob6>]
     >>> app.manage_delObjects(['ob2'])
