@@ -1,6 +1,6 @@
 from plone.relations.interfaces import IComplexRelationshipContainer, _marker
 from plone.relations.relationships import Z2Relationship
-from plone.app.relations import interfaces
+from plone.app.relations import interfaces as pa_interfaces
 from zope.component import adapts, getUtility
 from zope.interface import implements, alsoProvides
 from persistent import IPersistent
@@ -9,7 +9,7 @@ class RelationshipSource(object):
     """A basic implementation of IRelationshipSource based on the container
     from plone.relations, this package registers it as a named utility
     called ``relations``"""
-    implements(interfaces.IRelationshipSource)
+    implements(pa_interfaces.IRelationshipSource)
     adapts(IPersistent)
 
     def __init__(self, source):
@@ -19,15 +19,16 @@ class RelationshipSource(object):
                                context=source)
 
     def createRelationship(self, targets, relation=None, interfaces=(),
-                           rel_factory=None):
+                           rel_factory=None, default_deletion=True):
         """See interface"""
         if rel_factory is None:
             rel_factory = Z2Relationship
         if not isinstance(targets, (list, tuple)):
             targets = (targets,)
         rel = rel_factory((self.source,), targets, relation=relation)
-        for interface in interfaces:
-            alsoProvides(rel, interface)
+        alsoProvides(rel, *interfaces)
+        if default_deletion:
+            alsoProvides(rel, pa_interfaces.IDefaultDeletion)
         self.util.add(rel)
         # retrieve the object from the container
         return self.util[rel.__name__]
@@ -52,9 +53,9 @@ class RelationshipSource(object):
         # Resolve the relationships to check their length.
         rels = list(rels)
         if not rels and not ignore_missing:
-            raise interfaces.NoResultsError
+            raise pa_interfaces.NoResultsError
         if len(rels) > 1 and not multiple:
-            raise interfaces.TooManyResultsError
+            raise pa_interfaces.TooManyResultsError
         for rel in rels:
             if target is not None:
                 # Sanity check
@@ -67,7 +68,7 @@ class RelationshipSource(object):
                     new_sources.remove(self.source)
                     rel.sources = new_sources
                 else:
-                    raise interfaces.TooManyResultsError, "One of the "\
+                    raise pa_interfaces.TooManyResultsError, "One of the "\
                           "relationships to be deleted has multiple sources "\
                           "and targets."
             # If there are multiple targets and remove_all_targets is

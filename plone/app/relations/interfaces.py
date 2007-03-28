@@ -1,5 +1,7 @@
-from zope.interface import Interface, Attribute
+from zope.interface import Interface, Attribute, implements
 from zope.app.annotation.interfaces import IAnnotatable
+from zope.app.event.objectevent import ObjectEvent
+from zope.app.event.interfaces import IObjectEvent
 from plone.relations.interfaces import _marker, IStatefulRelationship
 
 class TooManyResultsError(Exception):
@@ -34,8 +36,8 @@ class IRelationshipSource(Interface):
         per instance security configuration).
 
         This method returns the relationship object in case further
-        configuration is needed.  Such configuration should be done
-        via adaptation."""
+        configuration is needed.  Such configuration should generally
+        be done via adaptation."""
 
     def getRelationships(target=None, relation=_marker, state=_marker,
                            context=_marker, rel_filter=None):
@@ -213,3 +215,42 @@ class IDCWorkflowRelationship(IStatefulRelationship):
 
     def listActions():
         """List available user triggered transitions"""
+
+class IRelationSourceDeleted(IObjectEvent):
+    """An event which indicates that the source of a relationship has
+    been deleted"""
+    source = Attribute("The object that was deleted")
+
+class IRelationTargetDeleted(IObjectEvent):
+    """An event which indicates that the target of a relationship has
+    been deleted"""
+    target = Attribute("The object that was deleted")
+
+class RelationSourceDeleted(ObjectEvent):
+    implements(IRelationSourceDeleted)
+
+    def __init__(self, object, source):
+        ObjectEvent.__init__(self, object)
+        self.source = source
+
+class RelationTargetDeleted(ObjectEvent):
+    implements(IRelationTargetDeleted)
+
+    def __init__(self, object, target):
+        ObjectEvent.__init__(self, object)
+        self.target = target
+
+class IDefaultDeletion(Interface):
+    """A marker interface indicating that the relationship should be
+    deleted/updated when it's sources or targets are deleted"""
+
+class IHoldingRelation(Interface):
+    """A marker interface to demonstrate the use of a marker interface
+    to change behavior on target deletion"""
+
+
+class HoldingRelationError(Exception):
+    """An exception raised when the target of a HoldingRelation is deleted"""
+    def __init__(self, obj, relation):
+        self.args =  "%s cannot be deleted, it is referenced in the "\
+                    "relationship %s"%(obj, relation)

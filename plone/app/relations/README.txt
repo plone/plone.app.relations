@@ -554,7 +554,50 @@ the interface's ``providedBy`` as our filter::
     [<Demo ob6>]
 
 
-Because of the ability to make further queries using the current
-relationship chain, the original index, and the original query,
-it is possible to create very complex and interesting queries
-using a ``rel_filter``.
+Source and Target Deletion
+===========================
+
+We want our relationships cleaned up when we delete either a source or
+a target of a relationship.  To this end we have registered an event
+which does so.
+
+First we add some extra relationships to fully test that relationships
+with multiple sources and/or targets are managed sanely::
+
+    >>> rel = source2.createRelationship(targets=(ob3,ob1))
+    >>> rel1 = list(source2.getRelationships())[0]
+    >>> rel1
+    <Relationship u'relation 2' from (<Demo ob2>,) to (<Demo ob3>,)>
+    >>> rel1.sources = (ob2,ob1)
+    >>> rel = source.createRelationship(targets=(ob2))
+
+Now we check the current relationships and ensure they are removed
+when the object is deleted::
+
+    >>> list(interfaces.ISymmetricRelation(ob2).getRelationships())
+    [<Relationship u'relation 2' from (<Demo ob2>, <Demo ob5>) to (<Demo ob3>,)>, <Relationship u'relation 1' from (<Demo ob2>,) to (<Demo ob5>,)>, <Relationship None from (<Demo ob2>,) to (<Demo ob3>, <Demo ob4>)>, <Relationship u'relation 1' from (<Demo ob1>,) to (<Demo ob2>, <Demo ob3>)>]
+    >>> list(interfaces.IRelationshipSource(ob1).getTargets())
+    [<Demo ob2>, <Demo ob3>, <Demo ob5>, <Demo ob6>]
+    >>> app.manage_delObjects(['ob2'])
+    >>> list(interfaces.ISymmetricRelation(ob2).getRelationships())
+    []
+    >>> list(interfaces.IRelationshipSource(ob1).getTargets())
+    [<Demo ob3>, <Demo ob5>, <Demo ob6>]
+
+There you can override this default deletion behavior by replacing the
+``IDefaultDeletion`` marker that gets applied automatically interface
+with another one that implements it's own subscribers for handling
+deletion.  We've registered some subscribers for objects marked with
+IHoldingRelation which prevent the object from being deleted if there
+are relationships pointing to it as a target::
+
+    >>> from zope.interface import directlyProvidedBy, directlyProvides
+    >>> source = interfaces.IRelationshipSource(ob3)
+    >>> rel = source.createRelationship(targets=(ob1,ob4))
+    >>> list(directlyProvidedBy(rel))
+    [<InterfaceClass plone.app.relations.interfaces.IDefaultDeletion>]
+    >>> directlyProvides(rel, interfaces.IHoldingRelation)
+    >>> app.manage_delObjects(['ob4'])
+    Traceback (most recent call last):
+    ...
+    HoldingRelationError: <Demo ob4> cannot be deleted, it is referenced in the relationship <Relationship None from (<Demo ob3>,) to (<Demo ob1>, <Demo ob4>)>

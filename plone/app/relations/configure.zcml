@@ -33,4 +33,30 @@
       name="install-relations.html"
       />
 
+  <subscriber
+      handler=".subscribers.handleSourceTargetDelete"
+      for="persistent.IPersistent
+           zope.app.container.interfaces.IObjectRemovedEvent"
+      />
+  <subscriber
+      handler=".subscribers.deleteReferenceOnSourceDelete"
+      for=".interfaces.IDefaultDeletion
+           .interfaces.IRelationSourceDeleted"
+      />
+  <subscriber
+      handler=".subscribers.deleteReferenceOnTargetDelete"
+      for=".interfaces.IDefaultDeletion
+           .interfaces.IRelationTargetDeleted"
+      />
+  <subscriber
+      handler=".subscribers.deleteReferenceOnSourceDelete"
+      for=".interfaces.IHoldingRelation
+           .interfaces.IRelationSourceDeleted"
+      />
+  <subscriber
+      handler=".subscribers.raiseHoldingExceptionOnTargetDelete"
+      for=".interfaces.IHoldingRelation
+           .interfaces.IRelationTargetDeleted"
+      />
+
 </configure>
