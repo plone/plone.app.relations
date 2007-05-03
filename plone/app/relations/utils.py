@@ -8,6 +8,7 @@ from OFS.interfaces import IApplication
 from five.intid.site import FiveIntIdsInstall, addUtility, add_intids
 from plone.relations import interfaces
 from plone.relations.container import Z2RelationshipContainer
+from zope.app.intid.interfaces import IIntIds
 
 class RelationsInstall(FiveIntIdsInstall):
     """A view for adding the local utility"""
@@ -37,3 +38,6 @@ def add_relations(context):
                           name='relations', context=context)
         util.__name__ = interfaces.IComplexRelationshipContainer.getName() + \
                         '-relations'
+        intids = getUtility(IIntIds, context=context)
+        intids.register(util)
+        intids.register(intids)

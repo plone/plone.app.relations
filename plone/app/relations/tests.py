@@ -1,7 +1,5 @@
 import unittest
 
-from zope.testing import doctestunit
-from zope.component import testing
 from Testing import ZopeTestCase as ztc
 from Products.PloneTestCase import PloneTestCase as ptc
 from collective.testing.layer import ZCMLLayer
@@ -25,8 +23,8 @@ class FuncLayer(ZCMLLayer):
 
 def contentSetUp(app):
     for i in range(30):
-        id = 'ob%d' % i
-        app._setObject(id, Demo(id))
+        oid = 'ob%d' % i
+        app._setObject(oid, Demo(oid))
 
 def setUp(test):
     from collective.testing.utils import monkeyAppAsSite
@@ -36,22 +34,29 @@ def setUp(test):
     add_intids(test.app)
     add_relations(test.app)
     contentSetUp(test.app)
+    setSite(test.app)
     setHooks()
 
 class RelationsPortalTestCase(ptc.FunctionalTestCase):
     def afterSetUp(self):
-        from collective.testing.utils import monkeyAppAsSite
-        monkeyAppAsSite()
         from plone.app import relations
         zcml.load_config('configure.zcml', relations)
+        from Products.CMFPlone.Portal import PloneSite
         from plone.app.relations.utils import add_relations, add_intids
+        from Products.Five.site.metaconfigure import classSiteHook
+        from Products.Five.site.localsite import FiveSite
+        from zope.interface import classImplements
+        from zope.app.component.interfaces import IPossibleSite
+
+        classSiteHook(PloneSite, FiveSite)
+        classImplements(PloneSite, IPossibleSite)
         from zope.app.component.hooks import setSite, setHooks
-        # Add the intids to zope and add the relations to the portal
-        add_intids(self.app)
+        # Add the intids and the relations to the portal
+        add_intids(self.portal)
         add_relations(self.portal)
         contentSetUp(self.portal)
         setHooks()
-
+        setSite(self.portal)
 
 def test_suite():
     readme = ztc.FunctionalDocFileSuite('README.txt',

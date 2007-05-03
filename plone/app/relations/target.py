@@ -72,8 +72,7 @@ class SymmetricRelation(object):
                                context=obj)
 
     def _getRelationshipTokens(self, partner=None, relation=_marker,
-                               state=_marker,
-                         context=_marker, rel_filter=None):
+                               state=_marker, context=_marker, rel_filter=None):
         """See interface"""
         rels1 = self.util.findRelationshipTokens(self.obj, partner, relation,
                                                  state, context,

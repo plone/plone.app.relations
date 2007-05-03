@@ -553,6 +553,13 @@ the interface's ``providedBy`` as our filter::
     >>> list(source.getTargets(rel_filter=my_filter))
     [<Demo ob6>]
 
+We need to get rid of this interface now because it will break some
+tests later on because it is not picklable, this bit can be safely ignored::
+
+    >>> rel = list(source.getRelationships(rel_filter=my_filter))[0]
+    >>> interface.directlyProvides(rel, interfaces.IDefaultDeletion)
+    >>> my_filter(rel)
+    False
 
 Source and Target Deletion
 ===========================
@@ -591,13 +598,61 @@ deletion.  We've registered some subscribers for objects marked with
 IHoldingRelation which prevent the object from being deleted if there
 are relationships pointing to it as a target::
 
-    >>> from zope.interface import directlyProvidedBy, directlyProvides
-    >>> source = interfaces.IRelationshipSource(ob3)
-    >>> rel = source.createRelationship(targets=(ob1,ob4))
-    >>> list(directlyProvidedBy(rel))
+    >>> source3 = interfaces.IRelationshipSource(ob3)
+    >>> rel = source3.createRelationship(targets=(ob1,ob4))
+    >>> list(interface.directlyProvidedBy(rel))
     [<InterfaceClass plone.app.relations.interfaces.IDefaultDeletion>]
-    >>> directlyProvides(rel, interfaces.IHoldingRelation)
+    >>> interface.directlyProvides(rel, interfaces.IHoldingRelation)
     >>> app.manage_delObjects(['ob4'])
     Traceback (most recent call last):
     ...
     HoldingRelationError: <Demo ob4> cannot be deleted, it is referenced in the relationship <Relationship None from (<Demo ob3>,) to (<Demo ob1>, <Demo ob4>)>
+
+
+Object Copies
+-------------
+
+For some relationships it may be considered necessary that when a
+source object is copied that the existing relationship be be copied
+onto the new copy.  This package registers a subscriber that allows
+this for relations marked with the IRetainOnCopy interface.  First
+let's look at the default behavior::
+
+    >>> list(source.getRelationships())
+    [<Relationship u'relation 1' from (<Demo ob1>,) to (<Demo ob3>,)>, <Relationship u'relation 2' from (<Demo ob1>,) to (<Demo ob3>,)>, <Relationship u'relation 1' from (<Demo ob1>,) to (<Demo ob5>,)>, <Relationship u'relation 1' from (<Demo ob1>,) to (<Demo ob6>,)>, <Relationship u'relation 2' from (<Demo ob1>,) to (<Demo ob6>,)>]
+    >>> self.setRoles(['Manager']) # Deal with explicit security checks
+    >>> app['ob1'].meta_type = 'Folder' # We need a metatype to copy
+    ...                                 # because zope 2 sucks
+    >>> copy_data = app.manage_copyObjects(['ob1'])
+    >>> ignore = self.folder.manage_pasteObjects(copy_data)
+    >>> copy_source = interfaces.IRelationshipSource(self.folder.ob1)
+    >>> list(copy_source.getRelationships())
+    []
+    >>> self.folder.manage_delObjects(['ob1'])
+
+Now we mark one of our relations (one with multiple sources to
+increase complexity a bit) as an IRetainOnCopy relationship::
+
+    >>> rel = list(source.getRelationships())[0]
+    >>> rel.sources = (ob1, ob4)
+    >>> interface.alsoProvides(rel, interfaces.IRetainOnCopy)
+    >>> rel
+    <Relationship u'relation 1' from (<Demo ob1>, <Demo ob4>) to (<Demo ob3>,)>
+    >>> list(source.getRelationships())
+    [<Relationship u'relation 1' from (<Demo ob1>, <Demo ob4>) to (<Demo ob3>,)>, <Relationship u'relation 2' from (<Demo ob1>,) to (<Demo ob3>,)>, <Relationship u'relation 1' from (<Demo ob1>,) to (<Demo ob5>,)>, <Relationship u'relation 1' from (<Demo ob1>,) to (<Demo ob6>,)>, <Relationship u'relation 2' from (<Demo ob1>,) to (<Demo ob6>,)>]
+
+    # XXX: we need to ghost the original relationship to remove the aq
+    # wrappers on the sources, otherwise they won't be copyable::
+    >>> import transaction
+    >>> sp = transaction.savepoint()
+    >>> rel._p_deactivate()
+
+Now we make the copy and see that the marked relationship has been copied,
+though only the copied object is used as the source::
+
+    >>> copy_data = app.manage_copyObjects(['ob1'])
+    >>> ignore = self.folder.manage_pasteObjects(copy_data)
+    >>> copy_source = interfaces.IRelationshipSource(self.folder.ob1)
+    >>> list(copy_source.getRelationships())
+    [<Relationship u'relation 1' from (<Demo ob1>,) to (<Demo ob3>,)>]
+

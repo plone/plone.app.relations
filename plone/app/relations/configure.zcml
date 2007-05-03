@@ -6,10 +6,6 @@
   <include package="plone.relations" />
   <include package="zope.app.annotation" />
 
-  <five:localsite
-      xmlns:five="http://namespaces.zope.org/five"
-      class="Products.CMFPlone.Portal.PloneSite" />
-  
   <adapter factory=".source.RelationshipSource" />
   <adapter factory=".target.RelationshipTarget" />
   <adapter factory=".target.SymmetricRelation" />
@@ -57,6 +53,16 @@
       handler=".subscribers.raiseHoldingExceptionOnTargetDelete"
       for=".interfaces.IHoldingRelation
            .interfaces.IRelationTargetDeleted"
+      />
+  <subscriber
+      handler=".subscribers.markCopyOnCopy"
+      for="persistent.IPersistent
+           zope.app.event.interfaces.IObjectCopiedEvent"
+      />
+  <subscriber
+      handler=".subscribers.copyRelationsOnSourceCopy"
+      for=".interfaces.ICopyPendingAdd
+           zope.app.container.interfaces.IObjectAddedEvent"
       />
 
 </configure>

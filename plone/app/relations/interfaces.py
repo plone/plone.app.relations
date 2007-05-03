@@ -248,9 +248,19 @@ class IHoldingRelation(Interface):
     """A marker interface to demonstrate the use of a marker interface
     to change behavior on target deletion"""
 
-
 class HoldingRelationError(Exception):
     """An exception raised when the target of a HoldingRelation is deleted"""
     def __init__(self, obj, relation):
         self.args =  "%s cannot be deleted, it is referenced in the "\
                     "relationship %s"%(obj, relation)
+
+class IRetainOnCopy(Interface):
+    """A marker interface to indicate that a relationship should be copied
+    when it's source object is copied (with the sources changed on the copy)."""
+
+class ICopyPendingAdd(Interface):
+    """An interface indicating that an object is a copy that hasn't been added
+    yet.  This is used to filter for add events that result from a copy.
+    The interface promises an attribute pointing to the original object"""
+
+    __orig_object__ = Attribute("The original object before copy")
