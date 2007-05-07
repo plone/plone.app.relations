@@ -227,9 +227,8 @@ class DCWorkflowAdapter(object):
         result = {}
         wf = self._get_workflow()
         sdef = wf._getWorkflowStateOf(self.rel)
-        # get the url using a method available on the REQUEST
-        getURL = aq_get(self.wf_tool, 'REQUEST').physicalPathToURL
-        obj_url = getURL(self.rel.getPhysicalPath())
+        # The url to the relationship should never be used we just use a path
+        obj_url = '/'.join(self.rel.getPhysicalPath())
         if sdef is not None:
             for tid in sdef.transitions:
                 tdef = wf.transitions.get(tid, None)
