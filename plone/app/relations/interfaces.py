@@ -100,14 +100,6 @@ class IRelationshipSource(Interface):
         match the specified parameters.  Depth and means of
         transitivity can be specified as with isLinked."""
 
-    def countTargets(relation=_marker, state=_marker,
-                     context=_marker, rel_filter=None, maxDepth=1,
-                     minDepth=None, transitivity=None):
-        """Returns the number of related target objects whose relationships
-        match the given parameters.  This should be faster and more memory
-        efficient than retrieving the targets or chains.  Depth and
-        means of transitivity can be specified as with isLinked."""
-
 
 class IRelationshipTarget(Interface):
     """A content-centric api for looking at back references"""
@@ -138,14 +130,6 @@ class IRelationshipTarget(Interface):
         relatioships match the specified parameters.  Depth and means
         of transitivity can be specified as with isLinked."""
 
-    def countSources(relation=_marker, state=_marker,
-                     context=_marker, rel_filter=None, maxDepth=1,
-                     minDepth=None, transitivity=None):
-        """Returns the number of related source objects whose relationships
-        match the given parameters.  This should be faster and more memory
-        efficient than retrieving the targets or chains.  Depth and
-        means of transitivity can be specified as with isLinked."""
-
 
 class ISymmetricRelation(Interface):
     """Allows searching for relationships and related objects
@@ -158,19 +142,11 @@ class ISymmetricRelation(Interface):
         matching the given parameters.  You may optionally specify a
         partner which is another object involved in the relationship."""
 
-    def countRelationships(partner=None, relation=_marker, state=_marker,
-                           context=_marker, rel_filter=None):
-        """Returns a count of relationships matching the given parameters."""
-
     def getRelations(relation=_marker, state=_marker, context=_marker,
                      rel_filter=None):
         """Returns all relationships pointing to or from the current object,
         matching the given parameters.  You may optionally specify a
         partner which is another object involved in the relationship."""
-
-    def countRelations(relation=_marker, state=_marker, context=_marker,
-                       rel_filter=None):
-        """Returns a count of relationships matching the given parameters."""
 
     def isLinked(partner=None, relation=_marker, state=_marker,
                            context=_marker, rel_filter=None):

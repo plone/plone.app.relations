@@ -1,9 +1,11 @@
 from plone.relations.interfaces import IComplexRelationshipContainer, _marker
 from plone.relations.relationships import Z2Relationship
+from plone.relations.lazylist import lazyresolver
 from plone.app.relations import interfaces as pa_interfaces
 from zope.component import adapts, getUtility
 from zope.interface import implements, alsoProvides
 from persistent import IPersistent
+
 
 class RelationshipSource(object):
     """A basic implementation of IRelationshipSource based on the container
@@ -11,12 +13,17 @@ class RelationshipSource(object):
     called ``relations``"""
     implements(pa_interfaces.IRelationshipSource)
     adapts(IPersistent)
+    _name = 'relations'
 
     def __init__(self, source):
         self.source = source
         # always use the context of the source object for utility lookup
-        self.util = getUtility(IComplexRelationshipContainer, name='relations',
+        self.util = getUtility(IComplexRelationshipContainer, name=self._name,
                                context=source)
+        self._resolver = self.util.relationIndex.resolveValueTokens
+
+    def _source_resolver(self, value):
+        return self._resolver((value,), 'source').next()
 
     def createRelationship(self, targets, relation=None, interfaces=(),
                            rel_factory=None, default_deletion=True):
@@ -101,23 +108,14 @@ class RelationshipSource(object):
                                            filter=rel_filter,
                                            transitivity=transitivity)
 
+    @lazyresolver(resolver_name='_source_resolver')
     def getTargets(self, relation=_marker, state=_marker, context=_marker,
                     rel_filter=None, maxDepth=1, minDepth=None,
                     transitivity=None):
         """See interface"""
-        return self.util.findTargets(self.source, relation, state,
-                                     context, maxDepth=maxDepth,
-                                     minDepth=minDepth,
-                                     filter=rel_filter,
-                                     transitivity=transitivity)
-
-    def countTargets(self, relation=_marker,
-                     state=_marker, context=_marker, rel_filter=None,
-                     maxDepth=1, minDepth=None, transitivity=None):
-        """See interface"""
-        return len(list(self.util.findTargetTokens(self.source, relation,
-                                             state, context, maxDepth=maxDepth,
-                                             minDepth=minDepth,
-                                             filter=rel_filter,
-                                             transitivity=transitivity)))
+        return self.util.findTargetTokens(self.source, relation, state,
+                                          context, maxDepth=maxDepth,
+                                          minDepth=minDepth,
+                                          filter=rel_filter,
+                                          transitivity=transitivity)
 

@@ -62,8 +62,7 @@ and also for the objects it's related to (the ``targets``)::
     []
 
 Further we can check to see if our object is linked directly to any
-object, or if it has any links at all, and also get a count of how
-many objects our object is related to::
+object, or if it has any links at all::
 
     >>> source.isLinked(target=ob2)
     True
@@ -71,7 +70,7 @@ many objects our object is related to::
     False
     >>> source.isLinked()
     True
-    >>> source.countTargets()
+    >>> len(source.getTargets())
     1
 
 In addition to adding and querying relationships, we can delete relationships::
@@ -135,10 +134,9 @@ A few of our query methods allow us to transitively search for
 relationships along this graph.  For example, though ob1 is not
 directly linked to ob5, it is linked indirectly via ob2.  We can
 specify a maximum depth to search this tree when looking at
-``isLinked``, ``getTargets``, ``countTargets``, and
-``getRelationshipChains``.  We can also filter these searches based on
-the relationship type so that only paths that match a specific
-relationship type are found::
+``isLinked``, ``getTargets``, and ``getRelationshipChains``.  We can
+also filter these searches based on the relationship type so that only
+paths that match a specific relationship type are found::
 
     >>> source.isLinked(ob5)
     False
@@ -155,13 +153,13 @@ relationship type are found::
 
 As you can see ob1 is linked to both ob3 and ob5, but it is linked to ob5 with the specific relationship type u'relation 1'.   We can also see how many objects our source is linked to using a ``maxDepth`` to search the tree:
 
-    >>> source.countTargets()
+    >>> len(source.getTargets())
     2
-    >>> source.countTargets(maxDepth=2)
+    >>> len(source.getTargets(maxDepth=2))
     4
-    >>> source.countTargets(relation=u'relation 1')
+    >>> len(source.getTargets(relation=u'relation 1'))
     2
-    >>> source.countTargets(relation=u'relation 1', maxDepth=2)
+    >>> len(source.getTargets(relation=u'relation 1', maxDepth=2))
     3
 
 You can also examine the list of chains connecting your object to a
@@ -357,7 +355,7 @@ Or make queries using ``maxDepth`` and ``minDepth``:
     True
     >>> target.isLinked(ob1)
     False
-    >>> target.countSources(maxDepth=2)
+    >>> len(target.getSources(maxDepth=2))
     2
     >>> chains = target.getRelationshipChains(maxDepth=None)
     >>> sorted([repr(r) for r in chains])
@@ -390,9 +388,9 @@ Now we can look at ob2 as a source, target, or symmetrically::
     [<Demo ob1>]
     >>> list(relation.getRelations())
     [<Demo ob3>, <Demo ob5>, <Demo ob1>]
-    >>> relation.countRelations()
+    >>> len(relation.getRelations())
     3
-    >>> relation.countRelations(relation=u'relation 1')
+    >>> len(relation.getRelations(relation=u'relation 1'))
     2
     >>> relation.isLinked(ob3)
     True
@@ -400,7 +398,7 @@ Now we can look at ob2 as a source, target, or symmetrically::
     True
     >>> relation.isLinked(ob3, relation=u'relation 1')
     False
-    >>> relation.countRelationships()
+    >>> len(relation.getRelationships())
     3
     >>> sorted((repr(r) for r in relation.getRelationships()))
     ["<Relationship u'relation 1' from (<Demo ob1>,) to (<Demo ob2>, <Demo ob3>)>", "<Relationship u'relation 1' from (<Demo ob2>,) to (<Demo ob5>,)>", "<Relationship u'relation 2' from (<Demo ob2>,) to (<Demo ob3>,)>"]
