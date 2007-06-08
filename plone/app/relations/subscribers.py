@@ -34,21 +34,25 @@ def handleSourceTargetDelete(ob, event):
 
 def deleteReferenceOnSourceDelete(rel, event):
     """deleted references related to the object"""
+    index = (IBidirectionalRelationshipIndex.providedBy(rel.__parent__) and
+             rel.__parent__ or None)
     if len(rel.sources) > 1:
-        new_sources = list(rel.sources)
-        new_sources.remove(event.source)
-        rel.sources = new_sources
-    elif IBidirectionalRelationshipIndex.providedBy(rel.__parent__):
-        rel.__parent__.remove(rel)
+        rel.sources.remove(event.source)
+        if index is not None:
+             index.reindex(rel)
+    elif index is not None:
+        index.remove(rel)
 
 def deleteReferenceOnTargetDelete(rel, event):
     """deleted references related to the object"""
+    index = (IBidirectionalRelationshipIndex.providedBy(rel.__parent__) and
+             rel.__parent__ or None)
     if len(rel.targets) > 1:
-        new_targets = list(rel.targets)
-        new_targets.remove(event.target)
-        rel.targets = new_targets
-    elif IBidirectionalRelationshipIndex.providedBy(rel.__parent__):
-        rel.__parent__.remove(rel)
+        rel.targets.remove(event.target)
+        if index is not None:
+            index.reindex(rel)
+    elif index is not None:
+        index.remove(rel)
 
 def raiseHoldingExceptionOnTargetDelete(rel, event):
     """raises an exception when the target of an existing IHoldingRelation

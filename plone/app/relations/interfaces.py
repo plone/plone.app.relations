@@ -227,8 +227,8 @@ class IHoldingRelation(Interface):
 class HoldingRelationError(Exception):
     """An exception raised when the target of a HoldingRelation is deleted"""
     def __init__(self, obj, relation):
-        self.args =  "%s cannot be deleted, it is referenced in the "\
-                    "relationship %s"%(obj, relation)
+        self.args =  "%s cannot be deleted, it is the target of a "\
+                    "relationship to %s"%(obj, tuple(relation.sources))
 
 class IRetainOnCopy(Interface):
     """A marker interface to indicate that a relationship should be copied

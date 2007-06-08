@@ -580,7 +580,7 @@ Now we check the current relationships and ensure they are removed
 when the object is deleted::
 
     >>> list(interfaces.ISymmetricRelation(ob2).getRelationships())
-    [<Relationship u'relation 2' from (<Demo ob2>, <Demo ob1>) to (<Demo ob3>,)>, <Relationship u'relation 1' from (<Demo ob2>,) to (<Demo ob5>,)>, <Relationship None from (<Demo ob2>,) to (<Demo ob3>, <Demo ob1>)>, <Relationship u'relation 1' from (<Demo ob1>,) to (<Demo ob2>, <Demo ob3>)>, <Relationship None from (<Demo ob1>,) to (<Demo ob2>,)>]
+    [<Relationship u'relation 2' from (<Demo ob1>, <Demo ob2>) to (<Demo ob3>,)>, <Relationship u'relation 1' from (<Demo ob2>,) to (<Demo ob5>,)>, <Relationship None from (<Demo ob2>,) to (<Demo ob1>, <Demo ob3>)>, <Relationship u'relation 1' from (<Demo ob1>,) to (<Demo ob2>, <Demo ob3>)>, <Relationship None from (<Demo ob1>,) to (<Demo ob2>,)>]
     >>> list(interfaces.IRelationshipSource(ob1).getTargets())
     [<Demo ob2>, <Demo ob3>, <Demo ob5>, <Demo ob6>]
     >>> app.manage_delObjects(['ob2'])
@@ -601,10 +601,16 @@ are relationships pointing to it as a target::
     >>> list(interface.directlyProvidedBy(rel))
     [<InterfaceClass plone.app.relations.interfaces.IDefaultDeletion>]
     >>> interface.directlyProvides(rel, interfaces.IHoldingRelation)
+    >>> import transaction
+    >>> sp = transaction.savepoint()
     >>> app.manage_delObjects(['ob4'])
     Traceback (most recent call last):
     ...
-    HoldingRelationError: <Demo ob4> cannot be deleted, it is referenced in the relationship <Relationship None from (<Demo ob3>,) to (<Demo ob1>, <Demo ob4>)>
+    HoldingRelationError: <Demo ob4> cannot be deleted, it is the target of a relationship to (<Demo ob3>,)
+    >>> sp.rollback()
+
+We made a savepoint and rolled it back, becuase normally such an exception
+would trigger a transaction abort, and prevent a partial delete operation from being committed.
 
 
 Object Copies

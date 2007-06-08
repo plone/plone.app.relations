@@ -33,9 +33,9 @@ def setUp(test):
     from zope.app.component.hooks import setSite, setHooks
     add_intids(test.app)
     add_relations(test.app)
-    contentSetUp(test.app)
     setSite(test.app)
     setHooks()
+    contentSetUp(test.app)
 
 class RelationsPortalTestCase(ptc.FunctionalTestCase):
     def afterSetUp(self):

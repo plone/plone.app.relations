@@ -32,7 +32,7 @@
   <subscriber
       handler=".subscribers.handleSourceTargetDelete"
       for="persistent.IPersistent
-           zope.app.container.interfaces.IObjectRemovedEvent"
+           zope.app.intid.interfaces.IIntIdRemovedEvent"
       />
   <subscriber
       handler=".subscribers.deleteReferenceOnSourceDelete"
@@ -62,7 +62,7 @@
   <subscriber
       handler=".subscribers.copyRelationsOnSourceCopy"
       for=".interfaces.ICopyPendingAdd
-           zope.app.container.interfaces.IObjectAddedEvent"
+           zope.app.intid.interfaces.IIntIdAddedEvent"
       />
 
 </configure>

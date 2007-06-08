@@ -71,9 +71,8 @@ class RelationshipSource(object):
             # sources if remove_all_targets is set. Otherwise, raise an error.
             if len(rel.sources) > 1:
                 if remove_all_targets or len(rel.targets) == 1:
-                    new_sources = list(rel.sources)
-                    new_sources.remove(self.source)
-                    rel.sources = new_sources
+                    rel.sources.remove(self.source)
+                    self.util.reindex(rel)
                 else:
                     raise pa_interfaces.TooManyResultsError, "One of the "\
                           "relationships to be deleted has multiple sources "\
@@ -82,9 +81,8 @@ class RelationshipSource(object):
             # set, remove them all.  Otherwise, remove only the
             # specified target.
             elif len(rel.targets) > 1 and not remove_all_targets:
-                new_targets = list(rel.targets)
-                new_targets.remove(target)
-                rel.targets = new_targets
+                rel.targets.remove(target)
+                self.util.reindex(rel)
             else:
                 self.util.remove(rel)
 
