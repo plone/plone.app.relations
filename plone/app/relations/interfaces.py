@@ -182,7 +182,7 @@ class IDCWorkflowRelationship(IStatefulRelationship):
     def doAction(action, comment='', **kw):
         """Requests a workflow action on the object"""
 
-    def isActionAllowedI(action):
+    def isActionAllowed(action):
         """Returns True if the given action is currently allowed"""
 
     def getInfo(name, default=_marker):
