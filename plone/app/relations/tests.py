@@ -1,5 +1,6 @@
 import unittest
-
+from zope.app.testing import placelesssetup
+from zope.testing.doctest import DocTestSuite
 from Testing import ZopeTestCase as ztc
 from Products.PloneTestCase import PloneTestCase as ptc
 from collective.testing.layer import ZCMLLayer
@@ -7,7 +8,6 @@ from OFS.SimpleItem import SimpleItem
 
 from Products.Five import zcml
 
-ptc.setupPloneSite()
 
 class Demo(SimpleItem):
     def __init__(self, id):
@@ -19,7 +19,12 @@ class FuncLayer(ZCMLLayer):
     @classmethod
     def setUp(cls):
         from plone.app import relations
-        zcml.load_config('configure.zcml', relations)
+        try:
+            zcml.load_config('configure.zcml', relations)
+        except:
+            # XXX: When ptc has setup plone, then the zcml product
+            # registration causes errors when run twice :-(
+            pass
 
 def contentSetUp(app):
     for i in range(30):
@@ -38,6 +43,7 @@ def setUp(test):
     contentSetUp(test.app)
 
 class RelationsPortalTestCase(ptc.FunctionalTestCase):
+
     def afterSetUp(self):
         from plone.app import relations
         zcml.load_config('configure.zcml', relations)
@@ -58,14 +64,24 @@ class RelationsPortalTestCase(ptc.FunctionalTestCase):
         setHooks()
         setSite(self.portal)
 
+# XXX: This messes things up, where else could we call it, it's only needed
+# for workflow
+ptc.setupPloneSite()
+
 def test_suite():
     readme = ztc.FunctionalDocFileSuite('README.txt',
                                         package='plone.app.relations',
                                         setUp=setUp)
-    workflow = ztc.ZopeDocTestSuite('plone.app.relations.workflow',
-                                    test_class=RelationsPortalTestCase)
     readme.layer = FuncLayer
-    return unittest.TestSuite([readme, workflow])
+
+    workflow = ztc.ZopeDocTestSuite('plone.app.relations.workflow',
+                                    test_class=RelationsPortalTestCase,)
+
+    import local_role
+    pas = DocTestSuite(local_role, setUp=placelesssetup.setUp(),
+                       tearDown=placelesssetup.tearDown())
+
+    return unittest.TestSuite([readme, workflow, pas])
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')

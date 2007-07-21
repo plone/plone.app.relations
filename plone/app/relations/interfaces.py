@@ -240,3 +240,14 @@ class ICopyPendingAdd(Interface):
     The interface promises an attribute pointing to the original object"""
 
     __orig_object__ = Attribute("The original object before copy")
+
+class ILocalRoleProvider(Interface):
+    """An interface which allows querying the local roles on an object"""
+
+    def getRoles(user):
+        """Returns an iterable of roles granted to the specified user object"""
+
+    def getAllRoles():
+        """Returns an iterable consisting of tuples of the form:
+                    (principal_id, sequence_of_roles)
+        """
