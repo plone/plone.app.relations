@@ -164,9 +164,9 @@ class RelationshipLocalRoleManager(BasePlugin):
         local role blocker"""
         while obj is not None:
             obj = aq_inner(obj)
+            yield obj
             if getattr(obj, '__ac_local_roles_block__', None):
                 raise StopIteration
-            yield obj
             obj = aq_parent(obj)
             obj = getattr(obj, 'im_self', obj)
 
