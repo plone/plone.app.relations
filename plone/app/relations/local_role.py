@@ -1,5 +1,6 @@
+from itertools import izip, repeat
 from Globals import InitializeClass
-from Acquisition import aq_inner, aq_parent, aq_base
+from Acquisition import aq_inner, aq_parent
 from AccessControl import ClassSecurityInfo
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from zope.component import getAdapters
@@ -58,7 +59,7 @@ class RelationshipLocalRoleManager(BasePlugin):
 
 
     We need an object to adapt, we require nothing of this object,
-    except it must be adaptable::
+    except it must be adaptable (e.g. have an interface)::
 
         >>> class DummyObject(object):
         ...     implements(Interface)
@@ -67,11 +68,19 @@ class RelationshipLocalRoleManager(BasePlugin):
     And we need some users that we'll check the permissions of::
 
         >>> class DummyUser(object):
-        ...     def __init__(self, uid):
+        ...     def __init__(self, uid, group_ids=()):
         ...         self.id = uid
+        ...         self._groups = group_ids
+        ...
+        ...     def getId(self):
+        ...         return self.id
         ...
         ...     def _check_context(self, obj):
         ...         return True
+        ...
+        ...     def getGroups(self):
+        ...         return self._groups
+        ...
         >>> user1 = DummyUser('bogus_user')
         >>> user2 = DummyUser('bogus_user2')
 
@@ -90,17 +99,25 @@ class RelationshipLocalRoleManager(BasePlugin):
         >>> rm.getAllLocalRolesInContext(ob)
         {'bogus_user': set(['Foo'])}
 
-    It is a bit more interesting when we have more than one adapter registered::
+
+    Multiple Role Providers
+    -----------------------
+
+    It is a bit more interesting when we have more than one adapter
+    registered.  We register it with a name so that it supplements,
+    rather than conflict with or override the existing adapter::
 
         >>> class LessSimpleLocalRoleProvider(SimpleLocalRoleProvider):
-        ...     def getRoles(self, user):
+        ...     userid = 'bogus_user2'
+        ...     roles = ('Foo', 'Baz')
+        ...     def getRoles(self, userid):
         ...         '''Grant bogus_user2 the 'Foo' and 'Baz' roles'''
-        ...         if user.id == 'bogus_user2':
-        ...             return ('Foo', 'Baz')
+        ...         if userid == self.userid:
+        ...             return self.roles
         ...         return ()
         ...
         ...     def getAllRoles(self):
-        ...         yield ('bogus_user2', ('Foo', 'Baz'))
+        ...         yield (self.userid, self.roles)
 
         >>> provideAdapter(LessSimpleLocalRoleProvider, name='adapter2')
 
@@ -127,8 +144,118 @@ class RelationshipLocalRoleManager(BasePlugin):
         >>> rm.checkLocalRolesAllowed(user2, ob, ['Bar']) is None
         True
 
+
+    Role Acquisition and Blocking
+    -----------------------------
+
+    This plugin will acquire role definitions from parent objects,
+    unless explicitly blocked.  To test this, we need some objects
+    which support acquisition::
+
+        >>> from Acquisition import Implicit
+        >>> class DummyImplicit(DummyObject, Implicit):
+        ...     pass
+        >>> root = DummyImplicit()
+        >>> next = DummyImplicit().__of__(root)
+        >>> last = DummyImplicit().__of__(next)
+        >>> other = DummyImplicit().__of__(root)
+
+    So we now have /root/next/last and /root/other, we'll create and
+    register special adapters for our next and other objects.
+
+        >>> class ISpecial1(Interface):
+        ...     pass
+        >>> class ISpecial2(Interface):
+        ...     pass
+        >>> from zope.interface import directlyProvides
+        >>> directlyProvides(next, ISpecial1)
+        >>> directlyProvides(other, ISpecial2)
+        >>> class Adapter1(LessSimpleLocalRoleProvider):
+        ...     adapts(ISpecial1)
+        ...     userid = 'bogus_user'
+        ...     roles = ('Bar',)
+        >>> class Adapter2(LessSimpleLocalRoleProvider):
+        ...     adapts(ISpecial2)
+        ...     userid = 'bogus_user3'
+        ...     roles = ('Foobar',)
+        >>> user3 = DummyUser('bogus_user3')
+
+    We'll register these to override the existing unnamed adapter:
+
+        >>> provideAdapter(Adapter1)
+        >>> provideAdapter(Adapter2)
+
+    Now we can show how acquisition of roles works, first we look at the
+    'last' item, which should have roles provided by
+    SimpleLocalRoleProvider, and LessSimpleLocalRoleProvider, as well
+    as acquired from Adapter1 on 'next':
+
+        >>> rm.getRolesInContext(user1, last)
+        ['Foo', 'Bar']
+
+        >>> rm.getRolesInContext(user2, last)
+        ['Foo', 'Baz']
+
+    If we look at the parent, we get the same results, because the
+    SimpleLocalRoleProvider adapter also applies to the 'root'
+    object. However, if we enable local role blocking on 'next' we
+    won't see the roles from the 'root'::
+
+        >>> rm.getRolesInContext(user1, next)
+        ['Foo', 'Bar']
+        >>> next.__ac_local_roles_block__ = True
+        >>> rm.getRolesInContext(user1, next)
+        ['Bar']
+
+    The checkLocalRolesAllowed and getAllLocalRolesInContext methods
+    take acquisition and blocking into account as well::
+
+        >>> rm.checkLocalRolesAllowed(user1, last,  ['Bar'])
+        1
+        >>> rm.checkLocalRolesAllowed(user1, next,  ['Foo', 'Baz']) is None
+        True
+        >>> rm.getAllLocalRolesInContext(last)
+        {'bogus_user2': set(['Foo', 'Baz']), 'bogus_user': set(['Foo', 'Bar'])}
+
+    It's important to note, that roles are acquired only by
+    containment.  Additional wrapping cannot change the security on an
+    object.  For example if we were to wrap 'last' in the context of
+    other, which provides a special role for 'user3', we should see no
+    effect::
+
+        >>> rm.getRolesInContext(user3, last)
+        ['Foo']
+        >>> rm.getRolesInContext(user3, other)
+        ['Foobar', 'Foo']
+        >>> rm.getRolesInContext(user3, last.__of__(other))
+        ['Foo']
+
+    Group Support
+    -------------
+
+    This plugin also handles roles granted to user groups, calling up
+    the adapters to get roles for any groups the user might belong
+    to::
+
+        >>> user4 = DummyUser('bogus_user4', ('Group1', 'Group2'))
+        >>> user4.getGroups()
+        ('Group1', 'Group2')
+        >>> rm.getRolesInContext(user4, last)
+        ['Foo']
+        >>> class Adapter3(LessSimpleLocalRoleProvider):
+        ...     userid = 'Group2'
+        ...     roles = ('Foobar',)
+
+        >>> provideAdapter(Adapter3, name='group_adapter')
+        >>> rm.getRolesInContext(user4, last)
+        ['Foobar', 'Foo']
+
+
+    Wrong User Folder
+    -----------------
+
     Finally, to ensure full test coverage, we provide a user object
-    which pretends to be wrapped in such a way that the user object
+    which pretends to be wrapped in such a way that the user folder
     does not recognize it.  We check that it always gets an empty set
     of roles and a special 0 value when checking access::
 
@@ -170,23 +297,43 @@ class RelationshipLocalRoleManager(BasePlugin):
             obj = aq_parent(obj)
             obj = getattr(obj, 'im_self', obj)
 
+    def _get_principal_ids(self, user):
+        """Returns a list of the ids of all involved security
+        principals: the user and all groups that they belong
+        to. (Note: recursive groups are not yet supported"""
+        principal_ids = list(user.getGroups())
+        principal_ids.insert(0, user.getId())
+        return principal_ids
+
     security.declarePrivate("getRolesInContext")
     def getRolesInContext(self, user, object):
+        # we combine the permission of the user with those of the
+        # gorups she belongs to
+        principal_ids = self._get_principal_ids(user)
         roles = set()
         if user._check_context(object):
             for obj in self._parent_chain(object):
                 for a in self._getAdapters(obj):
-                    roles.update(a.getRoles(user))
+                    for pid in principal_ids:
+                        roles.update(a.getRoles(pid))
         return list(roles)
 
     security.declarePrivate("checkLocalRolesAllowed")
     def checkLocalRolesAllowed(self, user, object, object_roles):
-        roles = []
+        """Checks if the user has one of the specified roles in the
+        given context, short circuits when the first provider granting
+        one of the roles is found."""
+        check_roles = dict(izip(object_roles, repeat(True)))
+        principal_ids = self._get_principal_ids(user)
         if not user._check_context(object):
             return 0
-        for role in self.getRolesInContext(user, object):
-            if role in object_roles:
-                return 1
+        for obj in self._parent_chain(object):
+            for a in self._getAdapters(obj):
+                for pid in principal_ids:
+                    roles = a.getRoles(pid)
+                    for role in check_roles:
+                        if role in roles:
+                            return 1
         return None
 
     security.declarePrivate("getAllLocalRolesInContext")

@@ -77,7 +77,7 @@ def test_suite():
     workflow = ztc.ZopeDocTestSuite('plone.app.relations.workflow',
                                     test_class=RelationsPortalTestCase,)
 
-    import local_role
+    from plone.app.relations import local_role
     pas = DocTestSuite(local_role, setUp=placelesssetup.setUp(),
                        tearDown=placelesssetup.tearDown())
 

@@ -244,7 +244,7 @@ class ICopyPendingAdd(Interface):
 class ILocalRoleProvider(Interface):
     """An interface which allows querying the local roles on an object"""
 
-    def getRoles(user):
+    def getRoles(principal_id):
         """Returns an iterable of roles granted to the specified user object"""
 
     def getAllRoles():
