@@ -154,7 +154,8 @@ class RelationshipLocalRoleManager(BasePlugin):
 
         >>> from Acquisition import Implicit
         >>> class DummyImplicit(DummyObject, Implicit):
-        ...     pass
+        ...     def stupid_method(self):
+        ...         return 1
         >>> root = DummyImplicit()
         >>> next = DummyImplicit().__of__(root)
         >>> last = DummyImplicit().__of__(next)
@@ -230,6 +231,12 @@ class RelationshipLocalRoleManager(BasePlugin):
         >>> rm.getRolesInContext(user3, last.__of__(other))
         ['Foo']
 
+    It's also important that methods of objects yield the same local
+    roles as the objects would
+
+        >>> rm.getRolesInContext(user3, other.stupid_method)
+        ['Foobar', 'Foo']
+
     Group Support
     -------------
 
@@ -294,8 +301,9 @@ class RelationshipLocalRoleManager(BasePlugin):
             yield obj
             if getattr(obj, '__ac_local_roles_block__', None):
                 raise StopIteration
-            obj = aq_parent(obj)
-            obj = getattr(obj, 'im_self', obj)
+            new = aq_parent(obj)
+            # if the obj is a method we get the class
+            obj = getattr(obj, 'im_self', new)
 
     def _get_principal_ids(self, user):
         """Returns a list of the ids of all involved security
