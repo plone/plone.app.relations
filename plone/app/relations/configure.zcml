@@ -67,4 +67,10 @@
 
   <five:registerPackage package="." initialize=".initialize" />
 
+  <class class="Products.CMFPlone.FactoryTool.TempFolder">
+    <implements interface=".interfaces.IFactoryTempFolder" />
+  </class>
+
+  <adapter factory=".local_role.FactoryTempFolderProvider" />
+  
 </configure>

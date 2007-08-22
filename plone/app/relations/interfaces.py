@@ -251,3 +251,5 @@ class ILocalRoleProvider(Interface):
         """Returns an iterable consisting of tuples of the form:
                     (principal_id, sequence_of_roles)
         """
+class IFactoryTempFolder(Interface):
+    """A marker indicating the portal_factory temp folder"""

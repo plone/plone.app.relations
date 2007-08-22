@@ -3,13 +3,15 @@ from Globals import InitializeClass
 from Acquisition import aq_inner, aq_parent
 from AccessControl import ClassSecurityInfo
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
-from zope.component import getAdapters
+from zope.component import getAdapters, adapts
+from zope.interface import implements
 
 from Products.PluggableAuthService.utils import classImplements
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PlonePAS.interfaces.plugins import ILocalRolesPlugin
 
 from plone.app.relations.interfaces import ILocalRoleProvider
+from plone.app.relations.interfaces import IFactoryTempFolder
 
 manage_addRelationshipLocalRoleManagerForm = PageTemplateFile(
         "AddLocalRoleManagerForm.pt", globals(),
@@ -357,3 +359,29 @@ class RelationshipLocalRoleManager(BasePlugin):
 
 classImplements(RelationshipLocalRoleManager, ILocalRolesPlugin)
 InitializeClass(RelationshipLocalRoleManager)
+
+from Acquisition import aq_inner, aq_parent
+from Products.CMFCore.utils import getToolByName
+
+class FactoryTempFolderProvider(object):
+    """A simple local role provider which just gathers the roles from
+    the desired context"""
+    adapts(IFactoryTempFolder)
+    implements(ILocalRoleProvider)
+
+    def __init__(self, obj):
+        self.folder = obj
+
+    def getRoles(self, principal_id):
+        uf = aq_inner(getToolByName(self.folder, 'acl_users'))
+        user = aq_inner(uf.getUserById(principal_id, default=None))
+        # use the folder we are creating in as role generating context
+        source = aq_parent(aq_parent(self.folder))
+        if user is not None:
+            return user.getRolesInContext(source)
+        else:
+            return []
+
+    def getAllRoles(self):
+        # This should not be used in any meaningful way, so we'll make it cheap
+        return {}
