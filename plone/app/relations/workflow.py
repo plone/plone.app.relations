@@ -27,7 +27,7 @@ class DCWorkflowAdapter(object):
     relationships between our site content:
 
         >>> from plone.app.relations import tests
-        >>> tests.setUp(portal)
+        >>> tests.base_setup(portal)
         >>> from plone.app.relations import interfaces
         >>> from zope.app.annotation.interfaces import IAttributeAnnotatable
         >>> ob1 = portal['ob1']
@@ -151,9 +151,6 @@ class DCWorkflowAdapter(object):
         WorkflowException: Reqested workflow definition not found.
         >>> stateful.state is None
         True
-
-        >>> tests.tearDown()
-
     """
 
     implements(interfaces.IDCWorkflowRelationship)

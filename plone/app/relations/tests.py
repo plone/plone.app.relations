@@ -23,14 +23,9 @@ def contentSetUp(app):
         oid = 'ob%d' % i
         app._setObject(oid, Demo(oid))
 
-def setUp(app):
-    placelesssetup.setUp()
-    import Products.Five
-    import five.intid
+def base_setup(app):
+    """Setup without basic CA stuff because PTC already provides this"""
     from plone.app import relations
-    zcml.load_config('meta.zcml', Products.Five)
-    zcml.load_config('permissions.zcml', Products.Five)
-    zcml.load_config('configure.zcml', Products.Five)
     try:
         zcml.load_config('configure.zcml', relations)
     except:
@@ -50,6 +45,16 @@ def setUp(app):
     add_relations(app)
     contentSetUp(app)
 
+def setUp(app):
+    """A setup that includes the basic CA setup"""
+    placelesssetup.setUp()
+    import Products.Five
+    zcml.load_config('meta.zcml', Products.Five)
+    zcml.load_config('permissions.zcml', Products.Five)
+    zcml.load_config('configure.zcml', Products.Five)
+    base_setup(app)
+
+
 def tearDown():
     placelesssetup.tearDown()
 
@@ -58,17 +63,17 @@ def tearDown():
 ptc.setupPloneSite()
 
 def test_suite():
+    from plone.app.relations import local_role
+    pas = DocTestSuite(local_role, setUp=placelesssetup.setUp(),
+                       tearDown=placelesssetup.tearDown())
+
     readme = ztc.FunctionalDocFileSuite('README.txt',
                                         package='plone.app.relations')
 
     workflow = ztc.ZopeDocTestSuite('plone.app.relations.workflow',
                                     test_class=ptc.FunctionalTestCase,)
 
-    from plone.app.relations import local_role
-    pas = DocTestSuite(local_role, setUp=placelesssetup.setUp(),
-                       tearDown=placelesssetup.tearDown())
-
-    return unittest.TestSuite([readme, workflow, pas])
+    return unittest.TestSuite([workflow, readme, pas])
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')
