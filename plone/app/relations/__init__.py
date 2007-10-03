@@ -25,10 +25,16 @@ def initialize(context):
                                      EXTENSION,
                                      for_=ISiteRoot)
 
-# 2.9 alias for zope.annotation
+# 2.9 alias for zope.annotation and zope.location
 try:
     import zope.annotation
 except ImportError:
     import sys
     import zope.app.annotation
     sys.modules['zope.annotation'] = zope.app.annotation
+try:
+    import zope.location
+except ImportError:
+    import sys
+    import zope.app.location
+    sys.modules['zope.location'] = zope.app.location

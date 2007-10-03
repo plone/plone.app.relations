@@ -6,7 +6,7 @@ from zope.event import notify
 from zope.component import getUtility
 from zope.component.interfaces import ComponentLookupError
 from zope.app.intid.interfaces import IIntIds
-from zope.app.location.pickling import locationCopy
+from zope.location.pickling import locationCopy
 from plone.relations.interfaces import IComplexRelationshipContainer
 from plone.app.relations.interfaces import IRetainOnCopy
 from plone.app.relations.interfaces import ICopyPendingAdd
