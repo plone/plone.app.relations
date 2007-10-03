@@ -1,10 +1,7 @@
 # Helpers for installing the utility in Zope < 2.10
-from Acquisition import aq_parent
 from zope.app.component.hooks import setSite, setHooks
-from zope.app.component.interfaces import ISite
 from zope.component.interfaces import ComponentLookupError
 from zope.component import getUtility
-from OFS.interfaces import IApplication
 from five.intid.site import FiveIntIdsInstall, addUtility, add_intids
 from plone.relations import interfaces
 from plone.relations.container import Z2RelationshipContainer
@@ -30,14 +27,14 @@ class RelationsInstall(FiveIntIdsInstall):
         return installed
 
 def add_relations(context):
-        addUtility(context, interfaces.IComplexRelationshipContainer,
-                   Z2RelationshipContainer, name='relations',
-                   findroot=False)
-        # Set __name__ to the silly name given by the old component machinery:
-        util = getUtility(interfaces.IComplexRelationshipContainer,
-                          name='relations', context=context)
-        util.__name__ = interfaces.IComplexRelationshipContainer.getName() + \
-                        '-relations'
-        intids = getUtility(IIntIds, context=context)
-        intids.register(util)
-        intids.register(intids)
+    addUtility(context, interfaces.IComplexRelationshipContainer,
+               Z2RelationshipContainer, name='relations',
+               findroot=False)
+    # Set __name__ to the silly name given by the old component machinery:
+    util = getUtility(interfaces.IComplexRelationshipContainer,
+                      name='relations', context=context)
+    util.__name__ = interfaces.IComplexRelationshipContainer.getName() + \
+                    '-relations'
+    setSite(context)
+    setHooks()
+    intids = getUtility(IIntIds)

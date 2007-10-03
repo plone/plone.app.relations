@@ -4,7 +4,7 @@
     xmlns:five="http://namespaces.zope.org/five">
 
   <include package="plone.relations" />
-  <include package="zope.app.annotation" />
+  <include package="zope.annotation" />
 
   <adapter factory=".source.RelationshipSource" />
   <adapter factory=".target.RelationshipTarget" />

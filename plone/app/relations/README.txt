@@ -18,6 +18,9 @@ directly and offers more flexibility at the expense of convenience.
 See the plone.relations documentation for details.
 
 
+    >>> from plone.app.relations import tests
+    >>> tests.setUp(app)
+
 Reference Sources
 ==================
 
@@ -660,3 +663,4 @@ though only the copied object is used as the source::
     >>> list(copy_source.getRelationships())
     [<Relationship u'relation 1' from (<Demo ob1>,) to (<Demo ob3>,)>]
 
+    >>> tests.tearDown()

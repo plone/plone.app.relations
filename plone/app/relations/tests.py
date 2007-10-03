@@ -3,8 +3,11 @@ from zope.app.testing import placelesssetup
 from zope.testing.doctest import DocTestSuite
 from Testing import ZopeTestCase as ztc
 from Products.PloneTestCase import PloneTestCase as ptc
-from collective.testing.layer import ZCMLLayer
 from OFS.SimpleItem import SimpleItem
+
+from five.intid.lsm import USE_LSM
+from five.intid.site import add_intids
+from plone.app.relations.utils import add_relations
 
 from Products.Five import zcml
 
@@ -15,54 +18,40 @@ class Demo(SimpleItem):
     def __repr__(self):
         return '<%s %s>' % (self.__class__.__name__, self.id)
 
-class FuncLayer(ZCMLLayer):
-    @classmethod
-    def setUp(cls):
-        from plone.app import relations
-        try:
-            zcml.load_config('configure.zcml', relations)
-        except:
-            # XXX: When ptc has setup plone, then the zcml product
-            # registration causes errors when run twice :-(
-            pass
-
 def contentSetUp(app):
     for i in range(30):
         oid = 'ob%d' % i
         app._setObject(oid, Demo(oid))
 
-def setUp(test):
-    from collective.testing.utils import monkeyAppAsSite
-    monkeyAppAsSite()
-    from plone.app.relations.utils import add_relations, add_intids
-    from zope.app.component.hooks import setSite, setHooks
-    add_intids(test.app)
-    add_relations(test.app)
-    setSite(test.app)
-    setHooks()
-    contentSetUp(test.app)
-
-class RelationsPortalTestCase(ptc.FunctionalTestCase):
-
-    def afterSetUp(self):
-        from plone.app import relations
+def setUp(app):
+    placelesssetup.setUp()
+    import Products.Five
+    import five.intid
+    from plone.app import relations
+    zcml.load_config('meta.zcml', Products.Five)
+    zcml.load_config('permissions.zcml', Products.Five)
+    zcml.load_config('configure.zcml', Products.Five)
+    try:
         zcml.load_config('configure.zcml', relations)
-        from Products.CMFPlone.Portal import PloneSite
-        from plone.app.relations.utils import add_relations, add_intids
+    except:
+        # XXX: When ptc has setup plone, then the zcml product
+        # registration causes errors when run twice :-(
+        pass
+    if not USE_LSM:
+        # monkey in our hooks
         from Products.Five.site.metaconfigure import classSiteHook
         from Products.Five.site.localsite import FiveSite
         from zope.interface import classImplements
         from zope.app.component.interfaces import IPossibleSite
+        klass = app.__class__
+        classSiteHook(klass, FiveSite)
+        classImplements(klass, IPossibleSite)
+    add_intids(app)
+    add_relations(app)
+    contentSetUp(app)
 
-        classSiteHook(PloneSite, FiveSite)
-        classImplements(PloneSite, IPossibleSite)
-        from zope.app.component.hooks import setSite, setHooks
-        # Add the intids and the relations to the portal
-        add_intids(self.portal)
-        add_relations(self.portal)
-        contentSetUp(self.portal)
-        setHooks()
-        setSite(self.portal)
+def tearDown():
+    placelesssetup.tearDown()
 
 # XXX: This messes things up, where else could we call it, it's only needed
 # for workflow
@@ -70,12 +59,10 @@ ptc.setupPloneSite()
 
 def test_suite():
     readme = ztc.FunctionalDocFileSuite('README.txt',
-                                        package='plone.app.relations',
-                                        setUp=setUp)
-    readme.layer = FuncLayer
+                                        package='plone.app.relations')
 
     workflow = ztc.ZopeDocTestSuite('plone.app.relations.workflow',
-                                    test_class=RelationsPortalTestCase,)
+                                    test_class=ptc.FunctionalTestCase,)
 
     from plone.app.relations import local_role
     pas = DocTestSuite(local_role, setUp=placelesssetup.setUp(),

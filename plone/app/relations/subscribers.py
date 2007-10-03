@@ -25,11 +25,12 @@ def handleSourceTargetDelete(ob, event):
         target = IRelationshipTarget(ob)
     except (ComponentLookupError, TypeError):
         return
-    rels = source.getRelationships()
-    for rel in list(rels):
+    # we tuplify the generator to prevent errors if we need to delete elements
+    rels = tuple(source.getRelationships())
+    for rel in rels:
         notify(RelationSourceDeleted(rel, ob))
-    rels = target.getRelationships()
-    for rel in list(rels):
+    rels = tuple(target.getRelationships())
+    for rel in rels:
         notify(RelationTargetDeleted(rel, ob))
 
 def deleteReferenceOnSourceDelete(rel, event):
@@ -39,8 +40,8 @@ def deleteReferenceOnSourceDelete(rel, event):
     if len(rel.sources) > 1:
         rel.sources.remove(event.source)
         if index is not None:
-             index.reindex(rel)
-    elif index is not None:
+            index.reindex(rel)
+    elif event.source in rel.sources and index is not None:
         index.remove(rel)
 
 def deleteReferenceOnTargetDelete(rel, event):
@@ -51,7 +52,7 @@ def deleteReferenceOnTargetDelete(rel, event):
         rel.targets.remove(event.target)
         if index is not None:
             index.reindex(rel)
-    elif index is not None:
+    elif event.target in rel.targets and index is not None:
         index.remove(rel)
 
 def raiseHoldingExceptionOnTargetDelete(rel, event):

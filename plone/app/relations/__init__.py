@@ -24,3 +24,11 @@ def initialize(context):
                                      'plone.app.relations',
                                      EXTENSION,
                                      for_=ISiteRoot)
+
+# 2.9 alias for zope.annotation
+try:
+    import zope.annotation
+except ImportError:
+    import sys
+    import zope.app.annotation
+    sys.modules['zope.annotation'] = zope.app.annotation

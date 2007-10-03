@@ -1,8 +1,9 @@
 import sys
-from Acquisition import aq_parent, aq_get
+from Acquisition import aq_parent, aq_get, aq_base
 from zope.interface import implements
 from zope.component import adapts
 from zope.event import notify
+from zope.app.component.hooks import getSite
 from plone.app.relations import interfaces
 from plone.app.relations.annotations import ANNOTATIONS_KEY
 from Products.CMFCore.utils import getToolByName
@@ -25,6 +26,8 @@ class DCWorkflowAdapter(object):
     To demonstrate how to use this adapter, we build some stateful
     relationships between our site content:
 
+        >>> from plone.app.relations import tests
+        >>> tests.setUp(portal)
         >>> from plone.app.relations import interfaces
         >>> from zope.app.annotation.interfaces import IAttributeAnnotatable
         >>> ob1 = portal['ob1']
@@ -34,6 +37,16 @@ class DCWorkflowAdapter(object):
         >>> rel = source.createRelationship(ob2, relation=u'relation 1',
         ...             interfaces=(interfaces.IDCWorkflowableRelationship,
         ...                         IAttributeAnnotatable))
+
+
+    Let's ghost this object before retrieving it again::
+
+        >>> import transaction
+        >>> sp = transaction.savepoint()
+        >>> rel._p_deactivate()
+        >>> rel.targets._p_deactivate()
+        >>> rel.sources._p_deactivate()
+        >>> rel = list(source.getRelationships())[0]
 
     We can see that this relationship currently has no state::
 
@@ -59,9 +72,10 @@ class DCWorkflowAdapter(object):
         >>> list(source.getRelationships(state='visible'))
         [<Relationship u'relation 1' from (<Demo ob1>,) to (<Demo ob2>,)>]
 
-    We can now see what transitions are available for the
+    We can now see what transitions are available for the Owner in this
     relationship's state, and of course execute them::
 
+        >>> self.setRoles(['Owner', 'Member'])
         >>> transitions = stateful.listActions()
         >>> len(transitions)
         2
@@ -138,18 +152,26 @@ class DCWorkflowAdapter(object):
         >>> stateful.state is None
         True
 
+        >>> tests.tearDown()
+
     """
 
     implements(interfaces.IDCWorkflowRelationship)
     adapts(interfaces.IDCWorkflowableRelationship)
 
     def __init__(self, rel):
+        # XXX: wrap our relationship in the current Site
+        site_chain = getSite().aq_chain
+        site_chain.insert(0, rel)
+        rel = site_chain.pop(-1)
+        for item in reversed(site_chain):
+            rel = aq_base(site_chain.pop(-1)).__of__(rel)
         self.rel = rel
+        # Use annotations for storing state
         self.annotations = IAnnotations(rel).setdefault(ANNOTATIONS_KEY,
                                                         PersistentMapping())
-        if aq_parent(rel) is None:
-            rel = rel.__of__(rel.__parent__)
-        self.wf_tool = getToolByName(rel, 'portal_workflow')
+        # use the current Site for the tool lookup
+        self.wf_tool = getToolByName(getSite(), 'portal_workflow')
 
     @apply
     def state_var():
@@ -227,8 +249,8 @@ class DCWorkflowAdapter(object):
         result = {}
         wf = self._get_workflow()
         sdef = wf._getWorkflowStateOf(self.rel)
-        # The url to the relationship should never be used we just use a path
-        obj_url = '/'.join(self.rel.getPhysicalPath())
+        # The url to the relationship should never be used we just use a name
+        obj_url = '/'.join(self.rel.__name__)
         if sdef is not None:
             for tid in sdef.transitions:
                 tdef = wf.transitions.get(tid, None)
