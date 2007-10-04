@@ -25,7 +25,7 @@ setup(name='plone.app.relations',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          # -*- Extra requirements: -*-
+          "plone.relations",
       ],
       entry_points="""
       # -*- Entry points: -*-
