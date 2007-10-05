@@ -1,5 +1,6 @@
 import unittest
 from zope.app.testing import placelesssetup
+from zope.interface import implements
 from zope.testing.doctest import DocTestSuite
 from Testing import ZopeTestCase as ztc
 from Products.PloneTestCase import PloneTestCase as ptc
@@ -8,6 +9,7 @@ from OFS.SimpleItem import SimpleItem
 from five.intid.lsm import USE_LSM
 from five.intid.site import add_intids
 from plone.app.relations.utils import add_relations
+from plone.app.relations.interfaces import ILocalRoleProvider
 
 from Products.Five import zcml
 
@@ -22,6 +24,40 @@ def contentSetUp(app):
     for i in range(30):
         oid = 'ob%d' % i
         app._setObject(oid, Demo(oid))
+
+
+class SimpleLocalRoleProvider(object):
+    implements(ILocalRoleProvider)
+    def __init__(self, context):
+        self.context = context
+
+    def getRoles(self, user):
+        """Grant everyone the 'Foo' role"""
+        return ('Foo',)
+
+    def getAllRoles(self):
+        """In the real world we would enumerate all users and
+        grant the 'Foo' role to each, but we won't"""
+        yield ('bogus_user', ('Foo',))
+
+
+class DummyUser(object):
+    def __init__(self, uid, group_ids=()):
+        self.id = uid
+        self._groups = group_ids
+
+    def getId(self):
+        return self.id
+
+    def _check_context(self, obj):
+        return True
+
+    def getGroups(self):
+        return self._groups
+
+    def getGroups(self):
+        return self._groups
+
 
 def base_setup(app):
     """Setup without basic CA stuff because PTC already provides this"""

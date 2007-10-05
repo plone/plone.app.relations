@@ -39,25 +39,12 @@ class RelationshipLocalRoleManager(BasePlugin):
     First we need to make and register an adapter to provide some roles::
 
         >>> from zope.interface import implements, Interface
-        >>> from zope.component import adapts
-        >>> class SimpleLocalRoleProvider(object):
-        ...     adapts(Interface)
-        ...     implements(ILocalRoleProvider)
-        ...
-        ...     def __init__(self, context):
-        ...         self.context = context
-        ...
-        ...     def getRoles(self, user):
-        ...         '''Grant everyone the 'Foo' role'''
-        ...         return ('Foo',)
-        ...
-        ...     def getAllRoles(self):
-        ...         '''In the real world we would enumerate all users and
-        ...         grant the 'Foo' role to each, but we won't'''
-        ...         yield ('bogus_user', ('Foo',))
 
         >>> from zope.component import provideAdapter
-        >>> provideAdapter(SimpleLocalRoleProvider)
+        >>> from plone.app.relations.tests import SimpleLocalRoleProvider
+        >>> from zope.app.testing import placelesssetup
+        >>> placelesssetup.setUp()
+        >>> provideAdapter(SimpleLocalRoleProvider, adapts=(Interface,))
 
 
     We need an object to adapt, we require nothing of this object,
@@ -69,20 +56,7 @@ class RelationshipLocalRoleManager(BasePlugin):
 
     And we need some users that we'll check the permissions of::
 
-        >>> class DummyUser(object):
-        ...     def __init__(self, uid, group_ids=()):
-        ...         self.id = uid
-        ...         self._groups = group_ids
-        ...
-        ...     def getId(self):
-        ...         return self.id
-        ...
-        ...     def _check_context(self, obj):
-        ...         return True
-        ...
-        ...     def getGroups(self):
-        ...         return self._groups
-        ...
+        >>> from plone.app.relations.tests import DummyUser
         >>> user1 = DummyUser('bogus_user')
         >>> user2 = DummyUser('bogus_user2')
 
@@ -121,7 +95,8 @@ class RelationshipLocalRoleManager(BasePlugin):
         ...     def getAllRoles(self):
         ...         yield (self.userid, self.roles)
 
-        >>> provideAdapter(LessSimpleLocalRoleProvider, name='adapter2')
+        >>> provideAdapter(LessSimpleLocalRoleProvider,
+        ...                adapts=(Interface,), name='adapter2')
 
    This should have no effect on our first user::
 
@@ -255,7 +230,7 @@ class RelationshipLocalRoleManager(BasePlugin):
         ...     userid = 'Group2'
         ...     roles = ('Foobar',)
 
-        >>> provideAdapter(Adapter3, name='group_adapter')
+        >>> provideAdapter(Adapter3, adapts=(Interface,), name='group_adapter')
         >>> rm.getRolesInContext(user4, last)
         ['Foobar', 'Foo']
 
@@ -276,6 +251,9 @@ class RelationshipLocalRoleManager(BasePlugin):
         []
         >>> rm.checkLocalRolesAllowed(bad_user, ob, ['Bar', 'Foo', 'Baz'])
         0
+
+        >>> placelesssetup.tearDown()
+
 
     """
     meta_type = "Relationship Roles Manager"
@@ -365,7 +343,89 @@ from Products.CMFCore.utils import getToolByName
 
 class FactoryTempFolderProvider(object):
     """A simple local role provider which just gathers the roles from
-    the desired context"""
+    the desired context::
+
+        >>> from zope.app.testing import placelesssetup
+        >>> placelesssetup.setUp()
+        >>> from zope.component import provideAdapter
+        >>> from zope.interface import Interface, implements, directlyProvides
+        >>> from plone.app.relations.local_role import RelationshipLocalRoleManager
+        >>> rm = RelationshipLocalRoleManager('rm', 'A Role Manager')
+
+        >>> from Acquisition import Implicit
+        >>> class DummyObject(Implicit):
+        ...     implements(Interface)
+        >>> root = DummyObject()
+
+
+    Let's construct a hierarchy similar to the way portal factory is used::
+
+        root --> folder -------|
+          |------------> PortalFactory --> TempFolder --> NewObject 
+
+        >>> fold = DummyObject().__of__(root)
+        >>> factory = DummyObject().__of__(root)
+        >>> wrapped_factory = factory.__of__(fold)
+        >>> temp = DummyObject().__of__(wrapped_factory)
+        >>> newob = DummyObject().__of__(temp)
+
+        >>> from plone.app.relations.tests import SimpleLocalRoleProvider
+        >>> from plone.app.relations.tests import DummyUser
+        >>> user1 = DummyUser('bogus_user1')
+
+
+    To test our adapter we need an acl_users, and our user needs a
+    getRolesInContext method::
+
+        >>> class FakeUF(object):
+        ...     def getUserById(self, userid, default=None):
+        ...         if userid == user1.getId():
+        ...             return user1
+        ...         return None
+        >>> root.acl_users = FakeUF()
+
+        >>> def getRolesInContext(user, context):
+        ...     return rm.getRolesInContext(user, context)
+        >>> from new import instancemethod
+        >>> user1.getRolesInContext = instancemethod(getRolesInContext, user1,
+        ...                                          DummyUser)
+
+
+    We add special interface to our Folder which allows us to provide
+    some local roles, these roles will be inherited by any contained
+    objects but not by our 'newob' because though the folder is its
+    acquisition chain it is not contained by it::
+
+        >>> class ISpecialInterface(Interface):
+        ...     pass
+        >>> directlyProvides(fold, ISpecialInterface)
+        >>> provideAdapter(SimpleLocalRoleProvider, adapts=(ISpecialInterface,))
+        >>> rm.getRolesInContext(user1, fold)
+        ['Foo']
+        >>> contained = DummyObject().__of__(fold)
+        >>> rm.getRolesInContext(user1, contained)
+        ['Foo']
+        >>> rm.getRolesInContext(user1, newob)
+        []
+
+    Now we mark our TempFolder, and check that roles are now inherited
+    from the intended location ('fold')::
+
+        >>> directlyProvides(temp, IFactoryTempFolder)
+        >>> provideAdapter(FactoryTempFolderProvider)
+        >>> rm.getRolesInContext(user1, newob)
+        ['Foo']
+
+    The getAllRoles method always returns an empty dict, becuas it is
+    only used for thing which are irrelevant for temporary objects::
+
+        >>> rm.getAllLocalRolesInContext(newob)
+        {}
+
+
+        >>> placelesssetup.tearDown()
+
+    """
     adapts(IFactoryTempFolder)
     implements(ILocalRoleProvider)
 
