@@ -4,9 +4,12 @@
  <utilities>
    <utility
      interface="zope.app.intid.interfaces.IIntIds"
-     factory="five.intid.intid.OFSIntIds"/>
+     factory="five.intid.intid.OFSIntIds"
+     />
    <utility
      interface="plone.relations.interfaces.IComplexRelationshipContainer"
-     factory="plone.relations.container.Z2RelationshipContainer"/>
+     factory="plone.relations.container.Z2RelationshipContainer"
+     name="relations"
+     />
  </utilities>
 </componentregistry>
