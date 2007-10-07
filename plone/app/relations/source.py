@@ -18,8 +18,7 @@ class RelationshipSource(object):
     def __init__(self, source):
         self.source = source
         # always use the context of the source object for utility lookup
-        self.util = getUtility(IComplexRelationshipContainer, name=self._name,
-                               context=source)
+        self.util = getUtility(IComplexRelationshipContainer, name=self._name)
         self._resolver = self.util.relationIndex.resolveValueTokens
 
     def _source_resolver(self, value):

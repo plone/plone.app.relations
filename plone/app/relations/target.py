@@ -16,8 +16,7 @@ class RelationshipTarget(object):
     def __init__(self, target):
         self.target = target
         # always use the context of the target object for utility lookup
-        self.util = getUtility(IComplexRelationshipContainer, name=self._name,
-                               context=target)
+        self.util = getUtility(IComplexRelationshipContainer, name=self._name)
         self._resolver = self.util.relationIndex.resolveValueTokens
 
     def _target_resolver(self, value):
@@ -67,8 +66,7 @@ class SymmetricRelation(object):
     def __init__(self, obj):
         self.obj = obj
         # always use the context of the object for utility lookup
-        self.util = getUtility(IComplexRelationshipContainer, name=self._name,
-                               context=obj)
+        self.util = getUtility(IComplexRelationshipContainer, name=self._name)
         self._resolver = self.util.relationIndex.resolveValueTokens
         self._rel_resolver = self.util.relationIndex.resolveRelationshipTokens
 
