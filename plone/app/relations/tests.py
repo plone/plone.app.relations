@@ -109,7 +109,12 @@ def test_suite():
     workflow = ztc.ZopeDocTestSuite('plone.app.relations.workflow',
                                     test_class=ptc.FunctionalTestCase,)
 
-    return unittest.TestSuite([workflow, readme, pas])
+    userrelations = ztc.ZopeDocFileSuite('userrelations.txt',
+                                         package='plone.app.relations', 
+                                         test_class=ptc.FunctionalTestCase,)
+
+
+    return unittest.TestSuite([workflow, readme, pas, userrelations])
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')

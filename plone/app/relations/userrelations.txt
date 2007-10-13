@@ -1,0 +1,34 @@
+>>> 1 == 1
+True
+>>> from plone.app.relations import tests
+>>> tests.base_setup(portal)
+>>> ob1 = portal['ob1']
+>>> ob2 = portal['ob2']
+>>> ob3 = portal['ob3']
+>>> from Products.CMFCore.utils import getToolByName
+>>> mtool = getToolByName(portal, 'portal_membership')
+>>> mtool.addMember('idpippo', 'pippo', ['Member',], [], properties=None)
+>>> mtool.getMemberById('idpippo')
+<MemberData at /plone/portal_memberdata/idpippo used for /plone/acl_users>
+>>> acl = getToolByName(portal, 'acl_users')
+>>> user = acl.getUserById('idpippo')
+>>> from plone.app.relations import interfaces
+>>> source = interfaces.IRelationshipSource(user)
+>>> rel1 = source.createRelationship(ob2)
+>>> list(source.getRelationships())
+[<Relationship None from (<PloneUser 'idpippo'>,) to (<Demo ob2>,)>]
+>>> source.isLinked(ob2)
+True
+>>> list(source.getTargets())
+[<Demo ob2>]
+>>> target = interfaces.IRelationshipTarget(ob2)
+>>> list(target.getSources())
+[<PloneUser 'idpippo'>]
+>>> target.isLinked(user)
+True
+>>> mtool.addMember('idpluto', 'pluto', ['Member',], [], properties=None)
+>>> pluto = acl.getUserById('idpluto')
+>>> rel2 = source.createRelationship(pluto)
+>>> list(source.getRelationships())
+[<Relationship None from (<PloneUser 'idpippo'>,) to (<Demo ob2>,)>, <Relationship None from (<PloneUser 'idpippo'>,) to (<PloneUser 'idpluto'>,)>]
+

@@ -3,7 +3,7 @@ from plone.relations.relationships import Z2Relationship
 from plone.relations.lazylist import lazyresolver
 from plone.app.relations import interfaces as pa_interfaces
 from zope.component import adapts, getUtility
-from zope.interface import implements, alsoProvides
+from zope.interface import implements, alsoProvides, Interface
 from persistent import IPersistent
 
 
@@ -12,7 +12,7 @@ class RelationshipSource(object):
     from plone.relations, this package registers it as a named utility
     called ``relations``"""
     implements(pa_interfaces.IRelationshipSource)
-    adapts(IPersistent)
+    adapts(Interface)
     _name = 'relations'
 
     def __init__(self, source):

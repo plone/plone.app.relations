@@ -2,7 +2,7 @@ from plone.relations.interfaces import IComplexRelationshipContainer, _marker
 from plone.relations.lazylist import lazyresolver
 from plone.app.relations import interfaces
 from zope.component import adapts, getUtility
-from zope.interface import implements
+from zope.interface import implements, Interface
 from persistent import IPersistent
 
 class RelationshipTarget(object):
@@ -10,7 +10,7 @@ class RelationshipTarget(object):
     from plone.relations, this package registers it as a named utility
     called ``relations``"""
     implements(interfaces.IRelationshipTarget)
-    adapts(IPersistent)
+    adapts(Interface)
     _name = 'relations'
 
     def __init__(self, target):
@@ -60,7 +60,7 @@ class RelationshipTarget(object):
 
 class SymmetricRelation(object):
     implements(interfaces.ISymmetricRelation)
-    adapts(IPersistent)
+    adapts(Interface)
     _name = 'relations'
 
     def __init__(self, obj):

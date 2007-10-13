@@ -12,7 +12,9 @@
   <adapter factory=".annotations.StateAnnotationsAdapter" />
   <adapter factory=".annotations.ContextAnnotationsAdapter" />
   <adapter factory=".workflow.DCWorkflowAdapter" />
-
+  <adapter factory=".userrelations.getUserRelatableProxy" />
+  <adapter factory=".userrelations.getUserFromProxy" /> 
+  
   <browser:page
       for="Products.CMFCore.interfaces.ISiteRoot"
       class=".utils.RelationsInstall"
@@ -69,6 +71,10 @@
 
   <class class="Products.CMFPlone.FactoryTool.TempFolder">
     <implements interface=".interfaces.IFactoryTempFolder" />
+  </class>
+
+  <class class="Products.CMFCore.MemberDataTool.MemberData">
+    <implements interface="zope.annotation.interfaces.IAttributeAnnotatable" />
   </class>
 
   <adapter factory=".local_role.FactoryTempFolderProvider" />
