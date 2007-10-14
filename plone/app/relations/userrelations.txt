@@ -1,34 +1,71 @@
->>> 1 == 1
-True
->>> from plone.app.relations import tests
->>> tests.base_setup(portal)
->>> ob1 = portal['ob1']
->>> ob2 = portal['ob2']
->>> ob3 = portal['ob3']
->>> from Products.CMFCore.utils import getToolByName
->>> mtool = getToolByName(portal, 'portal_membership')
->>> mtool.addMember('idpippo', 'pippo', ['Member',], [], properties=None)
->>> mtool.getMemberById('idpippo')
-<MemberData at /plone/portal_memberdata/idpippo used for /plone/acl_users>
->>> acl = getToolByName(portal, 'acl_users')
->>> user = acl.getUserById('idpippo')
->>> from plone.app.relations import interfaces
->>> source = interfaces.IRelationshipSource(user)
->>> rel1 = source.createRelationship(ob2)
->>> list(source.getRelationships())
-[<Relationship None from (<PloneUser 'idpippo'>,) to (<Demo ob2>,)>]
->>> source.isLinked(ob2)
-True
->>> list(source.getTargets())
-[<Demo ob2>]
->>> target = interfaces.IRelationshipTarget(ob2)
->>> list(target.getSources())
-[<PloneUser 'idpippo'>]
->>> target.isLinked(user)
-True
->>> mtool.addMember('idpluto', 'pluto', ['Member',], [], properties=None)
->>> pluto = acl.getUserById('idpluto')
->>> rel2 = source.createRelationship(pluto)
->>> list(source.getRelationships())
-[<Relationship None from (<PloneUser 'idpippo'>,) to (<Demo ob2>,)>, <Relationship None from (<PloneUser 'idpippo'>,) to (<PloneUser 'idpluto'>,)>]
+====================
+test user relations
+====================
 
+Prime tests set up our components and some basic content
+
+    >>> from plone.app.relations import tests
+    >>> tests.base_setup(portal)
+    >>> ob2 = portal['ob2']
+
+Now create a user
+
+    >>> from Products.CMFCore.utils import getToolByName
+    >>> mtool = getToolByName(portal, 'portal_membership')
+    >>> mtool.addMember('idpippo', 'pippo', ['Member',], [], properties=None)
+
+Check if the user is actually added
+
+    >>> mtool.getMemberById('idpippo')
+    <MemberData at /plone/portal_memberdata/idpippo used for /plone/acl_users>
+
+Now get this user
+
+    >>> acl = getToolByName(portal, 'acl_users')
+    >>> user = acl.getUserById('idpippo')
+
+Adapt the user to be a relationship source
+
+    >>> from plone.app.relations import interfaces
+    >>> source = interfaces.IRelationshipSource(user)
+
+Create relationship from user to obj
+
+    >>> rel1 = source.createRelationship(ob2)
+
+List users relationships and see if they are correct 
+
+    >>> list(source.getRelationships())
+    [<Relationship None from (<PloneUser 'idpippo'>,) to (<Demo ob2>,)>]
+
+Check if the target is linked
+
+    >>> source.isLinked(ob2)
+    True
+
+Check if the source is linked
+
+    >>> list(source.getTargets())
+    [<Demo ob2>]
+
+Check the back refereces
+
+    >>> target = interfaces.IRelationshipTarget(ob2)
+    >>> list(target.getSources())
+    [<PloneUser 'idpippo'>]
+    >>> target.isLinked(user)
+    True
+
+Make another user
+
+    >>> mtool.addMember('idpluto', 'pluto', ['Member',], [], properties=None)
+    >>> pluto = acl.getUserById('idpluto')
+
+Add another relationship to the source (still user idpippo) to newly created user (idpluto)
+
+    >>> rel2 = source.createRelationship(pluto)
+
+List all relationships user has
+
+    >>> list(source.getRelationships())
+    [<Relationship None from (<PloneUser 'idpippo'>,) to (<Demo ob2>,)>, <Relationship None from (<PloneUser 'idpippo'>,) to (<PloneUser 'idpluto'>,)>]    

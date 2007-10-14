@@ -55,9 +55,6 @@ class DummyUser(object):
     def getGroups(self):
         return self._groups
 
-    def getGroups(self):
-        return self._groups
-
 
 def base_setup(app):
     """Setup without basic CA stuff because PTC already provides this"""
