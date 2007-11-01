@@ -3,7 +3,6 @@ from zope.component import adapter, getUtility
 from zope.app.intid.interfaces import IIntIds
 from plone.relations.interfaces import IRelatableProxy, IRelatableUnProxy
 from Products.CMFCore.utils import getToolByName
-from Acquisition import aq_inner, aq_base, aq_chain
 from Products.PluggableAuthService.interfaces.authservice import IBasicUser
 from Products.CMFCore.interfaces import IMemberData
 from zope.annotation.interfaces import IAnnotations

@@ -1,13 +1,13 @@
 import sys
-from Acquisition import aq_parent, aq_get, aq_base
+from Acquisition import aq_base
 from zope.interface import implements
 from zope.component import adapts
-from zope.event import notify
 from zope.app.component.hooks import getSite
 from plone.app.relations import interfaces
 from plone.app.relations.annotations import ANNOTATIONS_KEY
 from Products.CMFCore.utils import getToolByName
 from Products.CMFCore.WorkflowCore import WorkflowException
+from Products.CMFCore.WorkflowCore import ObjectDeleted
 from Products.DCWorkflow.Transitions import TRIGGER_USER_ACTION
 from zope.app.annotation.interfaces import IAnnotations
 from persistent.mapping import PersistentMapping

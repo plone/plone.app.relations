@@ -338,7 +338,6 @@ class RelationshipLocalRoleManager(BasePlugin):
 classImplements(RelationshipLocalRoleManager, ILocalRolesPlugin)
 InitializeClass(RelationshipLocalRoleManager)
 
-from Acquisition import aq_inner, aq_parent
 from Products.CMFCore.utils import getToolByName
 
 class FactoryTempFolderProvider(object):

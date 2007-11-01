@@ -4,8 +4,6 @@ from plone.relations.lazylist import lazyresolver
 from plone.app.relations import interfaces as pa_interfaces
 from zope.component import adapts, getUtility
 from zope.interface import implements, alsoProvides, Interface
-from persistent import IPersistent
-
 
 class RelationshipSource(object):
     """A basic implementation of IRelationshipSource based on the container
