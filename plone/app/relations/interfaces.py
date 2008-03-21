@@ -1,7 +1,11 @@
 from zope.interface import Interface, Attribute, implements
 from zope.annotation.interfaces import IAnnotatable
-from zope.component.interfaces import ObjectEvent
-from zope.component.interfaces import IObjectEvent
+try:
+    from zope.component.interfaces import ObjectEvent
+    from zope.component.interfaces import IObjectEvent
+except ImportError:
+    from zope.app.event.objectevent import ObjectEvent
+    from zope.app.event.interfaces import IObjectEvent
 from plone.relations.interfaces import _marker, IStatefulRelationship
 
 class TooManyResultsError(Exception):
