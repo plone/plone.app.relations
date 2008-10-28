@@ -1,9 +1,13 @@
-Changelog for plone.app.relations
+Changelog
+=========
 
-    (name of developer listed in brackets)
+1.0b4 - Unreleased
+-------------------
 
-plone.app.relations - 0.1 Unreleased
 
-    - Initial package structure.
-      [zopeskel]
+1.0b3 - 2008-10-28
+-------------------
 
+* Removed the bool(rel.__parent__) check for performance reasons and
+  replaced with if/else
+  [tesdal]
