@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '1.0'
+version = '1.0rc1'
 
 setup(name='plone.app.relations',
       version=version,
@@ -20,7 +20,7 @@ setup(name='plone.app.relations',
       url='http://svn.plone.org/svn/plone/plone.app.relations',
       license='GPL',
       packages=find_packages(exclude=['ez_setup']),
-      namespace_packages=['plone.app'],
+      namespace_packages=['plone', 'plone.app'],
       include_package_data=True,
       zip_safe=False,
       install_requires=[
