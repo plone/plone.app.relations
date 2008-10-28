@@ -32,8 +32,10 @@ def handleSourceTargetDelete(ob, event):
 
 def deleteReferenceOnSourceDelete(rel, event):
     """deleted references related to the object"""
-    index = (IBidirectionalRelationshipIndex.providedBy(rel.__parent__) and
-             rel.__parent__ or None)
+    if IBidirectionalRelationshipIndex.providedBy(rel.__parent__):
+        index = rel.__parent__
+    else:
+        index = None
     if len(rel.sources) > 1:
         rel.sources.remove(event.source)
         if index is not None:
@@ -43,8 +45,10 @@ def deleteReferenceOnSourceDelete(rel, event):
 
 def deleteReferenceOnTargetDelete(rel, event):
     """deleted references related to the object"""
-    index = (IBidirectionalRelationshipIndex.providedBy(rel.__parent__) and
-             rel.__parent__ or None)
+    if IBidirectionalRelationshipIndex.providedBy(rel.__parent__):
+        index = rel.__parent__
+    else:
+        index = None
     if len(rel.targets) > 1:
         rel.targets.remove(event.target)
         if index is not None:
