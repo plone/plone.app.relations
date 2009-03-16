@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '1.0'
+version = '1.1'
 
 setup(name='plone.app.relations',
       version=version,
@@ -24,6 +24,7 @@ setup(name='plone.app.relations',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
+          "setuptools",
           "plone.relations",
       ],
       entry_points="""
