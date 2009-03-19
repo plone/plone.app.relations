@@ -3,6 +3,7 @@ from zope.app.component.hooks import setSite, setHooks
 from zope.component.interfaces import ComponentLookupError
 from zope.component import getUtility
 from five.intid.site import FiveIntIdsInstall, addUtility, add_intids
+from five.intid.lsm import USE_LSM
 from plone.relations import interfaces
 from plone.relations.container import Z2RelationshipContainer
 from zope.app.intid.interfaces import IIntIds
@@ -11,8 +12,9 @@ class RelationsInstall(FiveIntIdsInstall):
     """A view for adding the local utility"""
     def install(self):
         # Add the intids utiity if it doesn't exist
-        add_intids(self.context)
-        add_relations(self.context)
+        portal = self.context
+        add_intids(portal)
+        add_relations(portal)
 
     @property
     def installed(self):
@@ -21,7 +23,12 @@ class RelationsInstall(FiveIntIdsInstall):
             util = getUtility(interfaces.IComplexRelationshipContainer,
                                 name='relations')
             if util is not None:
-                installed = True
+                if USE_LSM:
+                    sm = self.context.getSiteManager()
+                    if 'relations' in sm.objectIds():
+                        installed = True
+                else:
+                    installed = True
         except ComponentLookupError, e:
             pass
         return installed
@@ -38,3 +45,11 @@ def add_relations(context):
     setSite(context)
     setHooks()
     intids = getUtility(IIntIds)
+
+def installRelations(context):
+    if context.readDataFile('install_relations.txt') is None:
+        return
+    portal = context.getSite()
+    add_intids(portal)
+    add_relations(portal)
+    return "Added relations and intid utilities"
