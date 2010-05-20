@@ -1,5 +1,5 @@
 from Acquisition import aq_base
-from zope.interface import directlyProvides, directlyProvidedBy
+from zope.interface import alsoProvides, directlyProvides, directlyProvidedBy
 from zope.event import notify
 from zope.component import getUtility
 from zope.component.interfaces import ComponentLookupError
@@ -63,14 +63,14 @@ def raiseHoldingExceptionOnTargetDelete(rel, event):
 
 def markCopyOnCopy(obj, event):
     obj.__orig_object__ = event.original
-    directlyProvides(obj, ICopyPendingAdd)
+    alsoProvides(obj, ICopyPendingAdd)
 
 def copyRelationsOnSourceCopy(obj, event):
     """Copies all source relaitonships marked with IRetainOnCopy
     when the source object is copied"""
     orig_obj = obj.__orig_object__.aq_inner
     source = IRelationshipSource(orig_obj)
-    cur_ifaces = directlyProvidedBy(orig_obj)
+    cur_ifaces = directlyProvidedBy(obj)
     directlyProvides(obj, *[i for i in cur_ifaces if i is not ICopyPendingAdd])
     delattr(obj, '__orig_object__')
     copy_filter = IRetainOnCopy.providedBy
