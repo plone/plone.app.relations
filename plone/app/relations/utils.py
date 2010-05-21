@@ -39,7 +39,7 @@ def add_relations(context):
                findroot=False)
     # Set __name__ to the silly name given by the old component machinery:
     util = getUtility(interfaces.IComplexRelationshipContainer,
-                      name='relations', ofs_name="plone_relations",
+                      name='relations',
                       context=context)
     util.__name__ = interfaces.IComplexRelationshipContainer.getName() + \
                     '-relations'
