@@ -4,6 +4,9 @@ Changelog
 1.0 - Unreleased
 ----------------
 
+* Avoid dependency on zope.app.event and use zope.lifecycleevent if available.
+  [hannosch]
+
 * Changed the way temporary interfaces are attached and removed during
   the various stage of copy events
   [do3cc]

@@ -1,7 +1,8 @@
 <configure
     xmlns="http://namespaces.zope.org/zope"
     xmlns:browser="http://namespaces.zope.org/browser"
-    xmlns:five="http://namespaces.zope.org/five">
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:zcml="http://namespaces.zope.org/zcml">
 
   <include package="plone.relations" />
   <include package="zope.annotation" />
@@ -56,11 +57,20 @@
       for=".interfaces.IHoldingRelation
            .interfaces.IRelationTargetDeleted"
       />
-  <subscriber
-      handler=".subscribers.markCopyOnCopy"
-      for="persistent.IPersistent
-           zope.app.event.interfaces.IObjectCopiedEvent"
-      />
+  <configure zcml:condition="installed zope.app.event">
+    <subscriber
+        handler=".subscribers.markCopyOnCopy"
+        for="persistent.IPersistent
+             zope.app.event.interfaces.IObjectCopiedEvent"
+        />
+  </configure>
+  <configure zcml:condition="not-installed zope.app.event">
+    <subscriber
+        handler=".subscribers.markCopyOnCopy"
+        for="persistent.IPersistent
+             zope.lifecycleevent.interfaces.IObjectCopiedEvent"
+        />
+  </configure>
   <subscriber
       handler=".subscribers.copyRelationsOnSourceCopy"
       for=".interfaces.ICopyPendingAdd
