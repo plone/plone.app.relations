@@ -2,10 +2,19 @@
     xmlns="http://namespaces.zope.org/zope"
     xmlns:browser="http://namespaces.zope.org/browser"
     xmlns:five="http://namespaces.zope.org/five"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
     xmlns:zcml="http://namespaces.zope.org/zcml">
 
   <include package="plone.relations" />
   <include package="zope.annotation" />
+
+  <genericsetup:registerProfile
+      name="default"
+      title="plone.app.relations"
+      directory="profiles/default"
+      description="Extension profile for plone.app.relatons"
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      />
 
   <adapter factory=".source.RelationshipSource" />
   <adapter factory=".target.RelationshipTarget" />
@@ -15,7 +24,7 @@
   <adapter factory=".workflow.DCWorkflowAdapter" />
   <adapter factory=".userrelations.getUserRelatableProxy" />
   <adapter factory=".userrelations.getUserFromProxy" /> 
-  
+
   <browser:page
       for="Products.CMFCore.interfaces.ISiteRoot"
       class=".utils.RelationsInstall"
