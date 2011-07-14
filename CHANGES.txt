@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0 - Unreleased
+2.0 - Unreleased
 ----------------
 
 * Avoid dependency on zope.app.event and use zope.lifecycleevent if available.
