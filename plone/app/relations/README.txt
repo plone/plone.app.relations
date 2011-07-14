@@ -431,12 +431,12 @@ make use of them are a couple marker interfaces.  The state adapter
 uses annotations on the relationship and is applied to any
 relationship implementing ``IAnnotationsState``, which itself requires
 that the object be annotatable.  In this case we'll use attribute
-annotations (see ``zope.app.annotation``).
+annotations (see ``zope.annotation``).
 
 When we create a relationship, we can specify what marker interfaces
 to apply to it in order to customize it's behavior::
 
-    >>> from zope.app.annotation.interfaces import IAttributeAnnotatable
+    >>> from zope.annotation.interfaces import IAttributeAnnotatable
     >>> rel = source.createRelationship(ob5, relation=u'relation 1',
     ...                                 interfaces=(IAttributeAnnotatable,
     ...                                 interfaces.IAnnotationsState))

@@ -1,5 +1,6 @@
 from itertools import izip, repeat
-from Globals import InitializeClass
+
+from AccessControl.class_init import InitializeClass
 from Acquisition import aq_inner, aq_parent
 from AccessControl import ClassSecurityInfo
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile

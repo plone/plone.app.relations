@@ -26,6 +26,7 @@ setup(name='plone.app.relations',
       install_requires=[
           "setuptools",
           "plone.relations",
+          "Zope2 >= 2.13",
       ],
       entry_points="""
       [z3c.autoinclude.plugin]

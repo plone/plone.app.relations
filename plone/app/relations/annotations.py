@@ -2,7 +2,7 @@ from zope.interface import implements
 from zope.component import adapts
 from plone.relations import interfaces as pr_interfaces
 from plone.app.relations import interfaces
-from zope.app.annotation.interfaces import IAnnotations
+from zope.annotation.interfaces import IAnnotations
 from persistent.mapping import PersistentMapping
 from zc.relationship.interfaces import IBidirectionalRelationshipIndex
 

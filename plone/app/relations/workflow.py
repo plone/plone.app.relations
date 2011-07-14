@@ -9,7 +9,7 @@ from Products.CMFCore.utils import getToolByName
 from Products.CMFCore.WorkflowCore import WorkflowException
 from Products.CMFCore.WorkflowCore import ObjectDeleted
 from Products.DCWorkflow.Transitions import TRIGGER_USER_ACTION
-from zope.app.annotation.interfaces import IAnnotations
+from zope.annotation.interfaces import IAnnotations
 from persistent.mapping import PersistentMapping
 from zc.relationship.interfaces import IBidirectionalRelationshipIndex
 
@@ -29,7 +29,7 @@ class DCWorkflowAdapter(object):
         >>> from plone.app.relations import tests
         >>> tests.base_setup(portal)
         >>> from plone.app.relations import interfaces
-        >>> from zope.app.annotation.interfaces import IAttributeAnnotatable
+        >>> from zope.annotation.interfaces import IAttributeAnnotatable
         >>> ob1 = portal['ob1']
         >>> ob2 = portal['ob2']
         >>> ob3 = portal['ob3']
