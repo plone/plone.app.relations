@@ -70,7 +70,7 @@ def base_setup(app):
         from Products.Five.site.metaconfigure import classSiteHook
         from Products.Five.site.localsite import FiveSite
         from zope.interface import classImplements
-        from zope.app.component.interfaces import IPossibleSite
+        from zope.site.interfaces import IPossibleSite
         klass = app.__class__
         classSiteHook(klass, FiveSite)
         classImplements(klass, IPossibleSite)

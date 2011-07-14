@@ -2,7 +2,7 @@ import sys
 from Acquisition import aq_base
 from zope.interface import implements
 from zope.component import adapts
-from zope.app.component.hooks import getSite
+from zope.site.hooks import getSite
 from plone.app.relations import interfaces
 from plone.app.relations.annotations import ANNOTATIONS_KEY
 from Products.CMFCore.utils import getToolByName

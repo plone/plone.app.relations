@@ -1,12 +1,12 @@
 # Helpers for installing the utility in Zope < 2.10
-from zope.app.component.hooks import setSite, setHooks
+from zope.site.hooks import setSite, setHooks
 from zope.component.interfaces import ComponentLookupError
 from zope.component import getUtility
 from five.intid.site import FiveIntIdsInstall, addUtility, add_intids
 from five.intid.lsm import USE_LSM
 from plone.relations import interfaces
 from plone.relations.container import Z2RelationshipContainer
-from zope.app.intid.interfaces import IIntIds
+from zope.intid.interfaces import IIntIds
 
 class RelationsInstall(FiveIntIdsInstall):
     """A view for adding the local utility"""

@@ -26,6 +26,8 @@ setup(name='plone.app.relations',
       install_requires=[
           "setuptools",
           "plone.relations",
+          "zope.site",
+          "zope.intid",
           "Zope2 >= 2.13",
       ],
       entry_points="""

@@ -5,6 +5,8 @@
     xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
     xmlns:zcml="http://namespaces.zope.org/zcml">
 
+  <five:registerPackage package="." initialize=".initialize" />
+
   <include package="plone.relations" />
   <include package="zope.annotation" />
 
@@ -44,7 +46,7 @@
   <subscriber
       handler=".subscribers.handleSourceTargetDelete"
       for="persistent.IPersistent
-           zope.app.intid.interfaces.IIntIdRemovedEvent"
+           zope.intid.interfaces.IIntIdRemovedEvent"
       />
   <subscriber
       handler=".subscribers.deleteReferenceOnSourceDelete"
@@ -66,27 +68,16 @@
       for=".interfaces.IHoldingRelation
            .interfaces.IRelationTargetDeleted"
       />
-  <configure zcml:condition="installed zope.app.event">
-    <subscriber
-        handler=".subscribers.markCopyOnCopy"
-        for="persistent.IPersistent
-             zope.app.event.interfaces.IObjectCopiedEvent"
-        />
-  </configure>
-  <configure zcml:condition="not-installed zope.app.event">
-    <subscriber
-        handler=".subscribers.markCopyOnCopy"
-        for="persistent.IPersistent
-             zope.lifecycleevent.interfaces.IObjectCopiedEvent"
-        />
-  </configure>
+  <subscriber
+      handler=".subscribers.markCopyOnCopy"
+      for="persistent.IPersistent
+           zope.lifecycleevent.interfaces.IObjectCopiedEvent"
+      />
   <subscriber
       handler=".subscribers.copyRelationsOnSourceCopy"
       for=".interfaces.ICopyPendingAdd
-           zope.app.intid.interfaces.IIntIdAddedEvent"
+           zope.intid.interfaces.IIntIdAddedEvent"
       />
-
-  <five:registerPackage package="." initialize=".initialize" />
 
   <class class="Products.CMFPlone.FactoryTool.TempFolder">
     <implements interface=".interfaces.IFactoryTempFolder" />
